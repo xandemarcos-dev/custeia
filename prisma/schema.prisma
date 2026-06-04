@@ -1,0 +1,203 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// Camada Fundacional — Multi-Tenant
+// Toda tabela do sistema tem workspace_id como
+// FK obrigatória. Toda query filtra por tenant.
+// ─────────────────────────────────────────────
+
+enum Plan {
+  free
+  pro
+  enterprise
+}
+
+enum Role {
+  owner
+  editor
+  viewer
+}
+
+// ─────────────────────────────────────────────
+// Núcleo 1 — Enums
+// ─────────────────────────────────────────────
+
+enum ExitSource {
+  production
+  adjustment
+  waste
+  other
+}
+
+// ─────────────────────────────────────────────
+// Camada Fundacional — Tabelas
+// ─────────────────────────────────────────────
+
+model Workspace {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(100)
+  ownerId   String   @map("owner_id")
+  slug      String   @db.VarChar(50)
+  plan      Plan     @default(free)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relações
+  users       User[]
+  categories  Category[]
+  units       Unit[]
+  suppliers   Supplier[]
+  ingredients Ingredient[]
+
+  @@map("workspaces")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @db.VarChar(255)
+  name        String   @db.VarChar(100)
+  role        Role     @default(owner)
+  workspaceId String   @map("workspace_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relações
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// Núcleo 1 — Insumos & Estoque
+// ─────────────────────────────────────────────
+
+/// Agrupador de insumos — configurável pela Day,
+/// nada hardcoded no código (ex: Laticínios, Chocolates).
+model Category {
+  id          String @id @default(uuid())
+  workspaceId String @map("workspace_id")
+  name        String @db.VarChar(100)
+  color       String @db.VarChar(7) // hex — ex: #c2185b
+
+  // Relações
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id])
+  ingredients Ingredient[]
+
+  @@map("categories")
+}
+
+/// Unidades de medida com fator de conversão para unidade-base.
+/// Resolve a dor: "lanço em grama, quilo ou embalagem?"
+/// Ex: caixa de leite condensado 395g → to_base_factor = 395, base_unit = "gr"
+model Unit {
+  id           String  @id @default(uuid())
+  workspaceId  String  @map("workspace_id")
+  name         String  @db.VarChar(20) // ex: kg, gr, caixa
+  baseUnit     String  @map("base_unit") @db.VarChar(20) // ex: gr, ml, unidade
+  toBaseFactor Decimal @map("to_base_factor") @db.Decimal(12, 6) // ex: 1000 para kg→gr
+
+  // Relações
+  workspace         Workspace         @relation(fields: [workspaceId], references: [id])
+  ingredients       Ingredient[]      @relation("IngredientBaseUnit")
+  ingredientEntries IngredientEntry[] @relation("EntryPurchaseUnit")
+
+  @@map("units")
+}
+
+/// Fornecedores — suporta múltiplos por insumo,
+/// permite comparar preço com frete (caso Curitiba vs local).
+model Supplier {
+  id          String  @id @default(uuid())
+  workspaceId String  @map("workspace_id")
+  name        String  @db.VarChar(150)
+  city        String? @db.VarChar(100)
+  notes       String?
+
+  // Relações
+  workspace         Workspace         @relation(fields: [workspaceId], references: [id])
+  ingredientEntries IngredientEntry[]
+
+  @@map("suppliers")
+}
+
+/// Insumo cadastrado. avg_cost é o coração do sistema:
+/// o custo médio ponderado móvel em R$/unidade-base.
+/// NUNCA editar stock_qty ou avg_cost diretamente —
+/// apenas via registros de entrada/saída.
+model Ingredient {
+  id          String  @id @default(uuid())
+  workspaceId String  @map("workspace_id")
+  name        String  @db.VarChar(150)
+  brand       String? @db.VarChar(100)
+  categoryId  String  @map("category_id")
+  baseUnitId  String  @map("base_unit_id")
+  stockQty    Decimal @default(0) @map("stock_qty") @db.Decimal(14, 4)
+  avgCost     Decimal @default(0) @map("avg_cost") @db.Decimal(12, 6)
+  minStockQty Decimal @default(0) @map("min_stock_qty") @db.Decimal(14, 4)
+  notes       String?
+
+  // Relações
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  category  Category  @relation(fields: [categoryId], references: [id])
+  baseUnit  Unit      @relation("IngredientBaseUnit", fields: [baseUnitId], references: [id])
+
+  entries IngredientEntry[]
+  exits   IngredientExit[]
+
+  @@map("ingredients")
+}
+
+/// Cada compra de um insumo.
+/// A Day lança na unidade que comprou; o sistema converte para a unidade-base.
+/// avg_cost_before e avg_cost_after: trilha de auditoria do custo médio.
+/// freight_total: permite comparar fornecedores com frete embutido.
+model IngredientEntry {
+  id             String   @id @default(uuid())
+  workspaceId    String   @map("workspace_id")
+  ingredientId   String   @map("ingredient_id")
+  supplierId     String?  @map("supplier_id")
+  entryDate      DateTime @map("entry_date") @db.Date
+  purchaseUnitId String   @map("purchase_unit_id")
+  purchaseQty    Decimal  @map("purchase_qty") @db.Decimal(12, 4)
+  unitPrice      Decimal  @map("unit_price") @db.Decimal(12, 4)
+  freightTotal   Decimal  @default(0) @map("freight_total") @db.Decimal(10, 2)
+  qtyInBase      Decimal  @map("qty_in_base") @db.Decimal(14, 4)   // purchase_qty × to_base_factor
+  totalCost      Decimal  @map("total_cost") @db.Decimal(12, 4)    // (purchase_qty × unit_price) + freight_total
+  avgCostBefore  Decimal  @map("avg_cost_before") @db.Decimal(12, 6) // snapshot antes
+  avgCostAfter   Decimal  @map("avg_cost_after") @db.Decimal(12, 6)  // snapshot depois
+  notes          String?
+
+  // Relações
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  supplier     Supplier?  @relation(fields: [supplierId], references: [id])
+  purchaseUnit Unit       @relation("EntryPurchaseUnit", fields: [purchaseUnitId], references: [id])
+
+  @@map("ingredient_entries")
+}
+
+/// Cada saída de insumo: produção, ajuste de inventário, perda.
+/// source='production' → saída gerada por um lote de produção (Núcleo 2).
+/// source='adjustment' → correção manual quando estoque físico ≠ sistema.
+model IngredientExit {
+  id           String     @id @default(uuid())
+  workspaceId  String     @map("workspace_id")
+  ingredientId String     @map("ingredient_id")
+  exitDate     DateTime   @map("exit_date") @db.Date
+  qtyInBase    Decimal    @map("qty_in_base") @db.Decimal(14, 4)
+  unitCost     Decimal    @map("unit_cost") @db.Decimal(12, 6) // avg_cost no momento da saída
+  source       ExitSource
+  notes        String?
+
+  // Relações
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@map("ingredient_exits")
+}
