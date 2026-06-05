@@ -52,11 +52,13 @@ model Workspace {
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relações
-  users       User[]
-  categories  Category[]
-  units       Unit[]
-  suppliers   Supplier[]
-  ingredients Ingredient[]
+  users             User[]
+  categories        Category[]
+  units             Unit[]
+  suppliers         Supplier[]
+  ingredients       Ingredient[]
+  productCategories ProductCategory[]
+  recipes           Recipe[]
 
   @@map("workspaces")
 }
@@ -149,8 +151,9 @@ model Ingredient {
   category  Category  @relation(fields: [categoryId], references: [id])
   baseUnit  Unit      @relation("IngredientBaseUnit", fields: [baseUnitId], references: [id])
 
-  entries IngredientEntry[]
-  exits   IngredientExit[]
+  entries           IngredientEntry[]
+  exits             IngredientExit[]
+  recipeIngredients RecipeIngredient[]
 
   @@map("ingredients")
 }
@@ -200,4 +203,69 @@ model IngredientExit {
   ingredient Ingredient @relation(fields: [ingredientId], references: [id])
 
   @@map("ingredient_exits")
+}
+
+// ─────────────────────────────────────────────
+// Núcleo 2 — Fichas Técnicas
+// ─────────────────────────────────────────────
+
+model ProductCategory {
+  id          String @id @default(uuid())
+  workspaceId String @map("workspace_id")
+  name        String @db.VarChar(100)
+  color       String @db.VarChar(7)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  recipes   Recipe[]
+
+  @@map("product_categories")
+}
+
+/// Uma receita/produto. O custo NÃO é gravado — é calculado em tempo real
+/// somando qty_in_base × avg_cost de cada ingrediente (reflete o custo atual).
+model Recipe {
+  id              String  @id @default(uuid())
+  workspaceId     String  @map("workspace_id")
+  name            String  @db.VarChar(150)
+  categoryId      String  @map("category_id")
+  yieldQty        Decimal @map("yield_qty") @db.Decimal(10, 2)
+  unitPrice       Decimal @map("unit_price") @db.Decimal(10, 2)
+  targetMarginPct Decimal @default(0) @map("target_margin_pct") @db.Decimal(5, 2)
+  packagingCost   Decimal @default(0) @map("packaging_cost") @db.Decimal(10, 4)
+  fixedCostPct    Decimal @default(0) @map("fixed_cost_pct") @db.Decimal(5, 2)
+  notes           String?
+  isActive        Boolean @default(true) @map("is_active")
+
+  workspace Workspace               @relation(fields: [workspaceId], references: [id])
+  category  ProductCategory         @relation(fields: [categoryId], references: [id])
+  groups    RecipeIngredientGroup[]
+
+  @@map("recipes")
+}
+
+/// Grupo dentro de uma receita (ex: Massa, Cobertura) — caso La Petite.
+model RecipeIngredientGroup {
+  id         String @id @default(uuid())
+  recipeId   String @map("recipe_id")
+  name       String @db.VarChar(100)
+  orderIndex Int    @default(0) @map("order_index")
+
+  recipe      Recipe             @relation(fields: [recipeId], references: [id])
+  ingredients RecipeIngredient[]
+
+  @@map("recipe_ingredient_groups")
+}
+
+/// Um insumo dentro de um grupo da receita, com a quantidade na unidade base.
+model RecipeIngredient {
+  id           String  @id @default(uuid())
+  groupId      String  @map("group_id")
+  ingredientId String  @map("ingredient_id")
+  qtyInBase    Decimal @map("qty_in_base") @db.Decimal(12, 6)
+  orderIndex   Int     @default(0) @map("order_index")
+
+  group      RecipeIngredientGroup @relation(fields: [groupId], references: [id])
+  ingredient Ingredient            @relation(fields: [ingredientId], references: [id])
+
+  @@map("recipe_ingredients")
 }
