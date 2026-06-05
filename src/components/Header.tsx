@@ -14,6 +14,9 @@ export function Header() {
           <Link href="/receitas" className="hover:text-black dark:hover:text-white">
             Produtos
           </Link>
+          <Link href="/margem" className="hover:text-black dark:hover:text-white">
+            Margem
+          </Link>
         </nav>
       </div>
     </header>
