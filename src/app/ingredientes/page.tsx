@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatBRL } from "@/lib/format";
 import { Header } from "@/components/Header";
@@ -15,10 +16,20 @@ export default async function IngredientesPage() {
     <>
       <Header />
       <main className="mx-auto w-full max-w-5xl px-6 py-10">
-        <h1 className="text-2xl font-semibold tracking-tight">Ingredientes</h1>
-        <p className="mt-1 text-sm text-black/60 dark:text-white/60">
-          Custo médio ponderado móvel de cada insumo.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Ingredientes</h1>
+            <p className="mt-1 text-sm text-black/60 dark:text-white/60">
+              Custo médio ponderado móvel de cada insumo.
+            </p>
+          </div>
+          <Link
+            href="/entradas/nova"
+            className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+          >
+            Nova compra
+          </Link>
+        </div>
 
         <div className="mt-6 overflow-hidden rounded-xl border border-black/10 dark:border-white/10">
           <table className="w-full text-sm">
