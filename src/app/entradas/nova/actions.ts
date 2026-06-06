@@ -2,10 +2,14 @@
 
 import { prisma } from "@/lib/prisma";
 import { registerIngredientEntry } from "@/services/registerIngredientEntry";
+import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export async function createEntryAction(formData: FormData) {
+  const { isAuthenticated } = await auth();
+  if (!isAuthenticated) throw new Error("Você precisa estar logado.");
+
   // Lê os campos enviados pelo formulário.
   const ingredientId = String(formData.get("ingredientId") ?? "");
   const purchaseUnitId = String(formData.get("purchaseUnitId") ?? "");

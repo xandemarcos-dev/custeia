@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 
 export function Header() {
   return (
@@ -18,6 +19,14 @@ export function Header() {
             Margem
           </Link>
         </nav>
+        <div className="ml-auto flex items-center">
+          <Show when="signed-out">
+            <SignInButton />
+          </Show>
+          <Show when="signed-in">
+            <UserButton />
+          </Show>
+        </div>
       </div>
     </header>
   );

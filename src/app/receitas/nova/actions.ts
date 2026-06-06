@@ -1,10 +1,14 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export async function createRecipeAction(formData: FormData) {
+  const { isAuthenticated } = await auth();
+  if (!isAuthenticated) throw new Error("Você precisa estar logado.");
+
   const name = String(formData.get("name") ?? "").trim();
   const categoryId = String(formData.get("categoryId") ?? "");
   const yieldQty = Number(formData.get("yieldQty"));
