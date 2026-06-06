@@ -3,6 +3,16 @@ import { prisma } from "@/lib/prisma";
 import { formatBRL } from "@/lib/format";
 import { sumIngredientCost } from "@/services/recipeCost";
 import { Header } from "@/components/Header";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export const dynamic = "force-dynamic";
 
@@ -20,65 +30,71 @@ export default async function ReceitasPage() {
     <>
       <Header />
       <main className="mx-auto w-full max-w-5xl px-6 py-10">
-        <div className="flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Produtos</h1>
-            <p className="mt-1 text-sm text-black/60 dark:text-white/60">
+            <p className="mt-1 text-sm text-muted-foreground">
               Custo de produção calculado a partir do custo médio atual dos insumos.
             </p>
           </div>
-          <Link
-            href="/receitas/nova"
-            className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
-          >
+          <Link href="/receitas/nova" className={buttonVariants()}>
             Novo produto
           </Link>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-xl border border-black/10 dark:border-white/10">
-          <table className="w-full text-sm">
-            <thead className="bg-black/[.03] text-left dark:bg-white/[.03]">
-              <tr>
-                <th className="px-4 py-3 font-medium">Produto</th>
-                <th className="px-4 py-3 font-medium">Categoria</th>
-                <th className="px-4 py-3 font-medium text-right">Rende</th>
-                <th className="px-4 py-3 font-medium text-right">Custo do lote</th>
-                <th className="px-4 py-3 font-medium text-right">Custo / porção</th>
-                <th className="px-4 py-3 font-medium text-right">Preço venda</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recipes.map((r) => {
-                // Achata todos os ingredientes de todos os grupos.
-                const items = r.groups.flatMap((g) =>
-                  g.ingredients.map((ri) => ({
-                    qtyInBase: Number(ri.qtyInBase),
-                    avgCost: Number(ri.ingredient.avgCost),
-                  }))
-                );
-                const custoLote = sumIngredientCost(items);
-                const custoPorcao = custoLote / Number(r.yieldQty);
+        <Card>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Produto</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead className="text-right">Rende</TableHead>
+                  <TableHead className="text-right">Custo do lote</TableHead>
+                  <TableHead className="text-right">Custo / porção</TableHead>
+                  <TableHead className="text-right">Preço venda</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recipes.map((r) => {
+                  const items = r.groups.flatMap((g) =>
+                    g.ingredients.map((ri) => ({
+                      qtyInBase: Number(ri.qtyInBase),
+                      avgCost: Number(ri.ingredient.avgCost),
+                    }))
+                  );
+                  const custoLote = sumIngredientCost(items);
+                  const custoPorcao = custoLote / Number(r.yieldQty);
 
-                return (
-                  <tr key={r.id} className="border-t border-black/5 dark:border-white/5">
-                    <td className="px-4 py-3">{r.name}</td>
-                    <td className="px-4 py-3">{r.category.name}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{Number(r.yieldQty)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{formatBRL(custoLote, 2)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{formatBRL(custoPorcao, 2)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{formatBRL(Number(r.unitPrice), 2)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                  return (
+                    <TableRow key={r.id}>
+                      <TableCell className="font-medium">{r.name}</TableCell>
+                      <TableCell>{r.category.name}</TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {Number(r.yieldQty)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatBRL(custoLote, 2)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatBRL(custoPorcao, 2)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatBRL(Number(r.unitPrice), 2)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
 
-          {recipes.length === 0 && (
-            <p className="px-4 py-8 text-center text-black/50 dark:text-white/50">
-              Nenhum produto ainda. Rode o seed de receitas (Passo 7.4).
-            </p>
-          )}
-        </div>
+            {recipes.length === 0 && (
+              <p className="py-8 text-center text-muted-foreground">
+                Nenhum produto ainda. Clique em &ldquo;Novo produto&rdquo;.
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </main>
     </>
   );

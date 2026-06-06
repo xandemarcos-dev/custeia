@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 type Option = { id: string; name: string };
 
-export function IngredientRows({ ingredients }: { ingredients: Option[] }) {
-  // Cada número é uma "linha". Começamos com uma.
-  const [rows, setRows] = useState<number[]>([0]);
+const selectCls =
+  "flex h-9 flex-1 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]";
 
-  const fieldCls =
-    "rounded-lg border border-black/15 dark:border-white/15 bg-transparent px-3 py-2 text-sm";
+export function IngredientRows({ ingredients }: { ingredients: Option[] }) {
+  const [rows, setRows] = useState<number[]>([0]);
 
   function addRow() {
     setRows((r) => [...r, Date.now()]);
@@ -22,38 +23,35 @@ export function IngredientRows({ ingredients }: { ingredients: Option[] }) {
     <div className="space-y-2">
       {rows.map((id) => (
         <div key={id} className="flex items-center gap-2">
-          <select name="ingredientId" required className={`${fieldCls} flex-1`}>
+          <select name="ingredientId" required className={selectCls}>
             <option value="">Insumo…</option>
             {ingredients.map((ing) => (
               <option key={ing.id} value={ing.id}>{ing.name}</option>
             ))}
           </select>
-          <input
+          <Input
             name="qtyInBase"
             type="number"
             step="any"
             min="0"
             required
             placeholder="qtd (un. base)"
-            className={`${fieldCls} w-40`}
+            className="w-40"
           />
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => removeRow(id)}
-            className="rounded-lg px-3 py-2 text-sm text-black/50 hover:bg-black/[.04] dark:text-white/50 dark:hover:bg-white/[.06]"
             aria-label="Remover insumo"
           >
             ✕
-          </button>
+          </Button>
         </div>
       ))}
-      <button
-        type="button"
-        onClick={addRow}
-        className="text-sm font-medium text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white"
-      >
+      <Button type="button" variant="link" size="sm" onClick={addRow} className="px-0">
         + adicionar insumo
-      </button>
+      </Button>
     </div>
   );
 }

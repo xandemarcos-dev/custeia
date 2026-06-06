@@ -2,8 +2,17 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatBRL } from "@/lib/format";
 import { Header } from "@/components/Header";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
-// Renderiza a cada requisição (os dados mudam), não no build.
 export const dynamic = "force-dynamic";
 
 export default async function IngredientesPage() {
@@ -16,67 +25,65 @@ export default async function IngredientesPage() {
     <>
       <Header />
       <main className="mx-auto w-full max-w-5xl px-6 py-10">
-        <div className="flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Ingredientes</h1>
-            <p className="mt-1 text-sm text-black/60 dark:text-white/60">
+            <p className="mt-1 text-sm text-muted-foreground">
               Custo médio ponderado móvel de cada insumo.
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/insumos/novo"
-              className="rounded-lg border border-black/15 dark:border-white/15 px-4 py-2 text-sm font-medium hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-            >
+          <div className="flex items-center gap-2">
+            <Link href="/insumos/novo" className={buttonVariants({ variant: "outline" })}>
               Novo insumo
             </Link>
-            <Link
-              href="/entradas/nova"
-              className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
-            >
+            <Link href="/entradas/nova" className={buttonVariants()}>
               Nova compra
             </Link>
           </div>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-xl border border-black/10 dark:border-white/10">
-          <table className="w-full text-sm">
-            <thead className="bg-black/[.03] text-left dark:bg-white/[.03]">
-              <tr>
-                <th className="px-4 py-3 font-medium">Insumo</th>
-                <th className="px-4 py-3 font-medium">Categoria</th>
-                <th className="px-4 py-3 font-medium text-right">Estoque</th>
-                <th className="px-4 py-3 font-medium text-right">Custo médio</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ingredients.map((ing) => (
-                <tr key={ing.id} className="border-t border-black/5 dark:border-white/5">
-                  <td className="px-4 py-3">
-                    {ing.name}
-                    {ing.brand && (
-                      <span className="ml-2 text-black/40 dark:text-white/40">{ing.brand}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">{ing.category.name}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {Number(ing.stockQty).toLocaleString("pt-BR")} {ing.baseUnit.baseUnit}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {formatBRL(Number(ing.avgCost))}
-                    <span className="text-black/40 dark:text-white/40"> /{ing.baseUnit.baseUnit}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <Card>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Insumo</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead className="text-right">Estoque</TableHead>
+                  <TableHead className="text-right">Custo médio</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {ingredients.map((ing) => (
+                  <TableRow key={ing.id}>
+                    <TableCell className="font-medium">
+                      {ing.name}
+                      {ing.brand && (
+                        <span className="ml-2 font-normal text-muted-foreground">
+                          {ing.brand}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>{ing.category.name}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {Number(ing.stockQty).toLocaleString("pt-BR")} {ing.baseUnit.baseUnit}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatBRL(Number(ing.avgCost))}
+                      <span className="text-muted-foreground"> /{ing.baseUnit.baseUnit}</span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
 
-          {ingredients.length === 0 && (
-            <p className="px-4 py-8 text-center text-black/50 dark:text-white/50">
-              Nenhum ingrediente ainda. Rode o seed (Passo 5.2).
-            </p>
-          )}
-        </div>
+            {ingredients.length === 0 && (
+              <p className="py-8 text-center text-muted-foreground">
+                Nenhum ingrediente ainda. Clique em &ldquo;Novo insumo&rdquo;.
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </main>
     </>
   );
