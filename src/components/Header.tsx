@@ -6,6 +6,7 @@ const navItems = [
   { href: "/ingredientes", label: "Insumos" },
   { href: "/receitas", label: "Produtos" },
   { href: "/margem", label: "Margem" },
+  { href: "/simulador", label: "Simular" },
 ];
 
 export function Header() {
