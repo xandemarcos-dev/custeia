@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 
@@ -9,23 +10,24 @@ const navItems = [
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-5xl items-center gap-6 px-6">
-        <Link
-          href="/ingredientes"
-          className="flex items-center gap-2 font-semibold tracking-tight"
-        >
-          <span className="grid size-6 place-items-center rounded-md bg-primary text-xs text-primary-foreground">
-            R
-          </span>
-          Rixan
+    <header className="sticky top-0 z-10 border-b border-white/10 bg-[#182131] text-white">
+      <div className="mx-auto flex h-16 max-w-5xl items-center gap-6 px-6">
+        <Link href="/ingredientes" className="flex items-center" aria-label="Rixan — início">
+          <Image
+            src="/rixan-logo.png"
+            alt="Rixan"
+            width={376}
+            height={368}
+            priority
+            className="h-9 w-auto"
+          />
         </Link>
         <nav className="flex gap-1 text-sm">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="rounded-md px-3 py-1.5 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
             >
               {item.label}
             </Link>

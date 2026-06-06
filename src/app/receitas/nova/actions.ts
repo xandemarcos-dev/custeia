@@ -5,32 +5,44 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export async function createRecipeAction(formData: FormData) {
+export type RecipeFormState = { error?: string };
+
+export async function createRecipeAction(
+  _prev: RecipeFormState,
+  formData: FormData
+): Promise<RecipeFormState> {
   const { isAuthenticated } = await auth();
-  if (!isAuthenticated) throw new Error("Você precisa estar logado.");
+  if (!isAuthenticated) return { error: "Você precisa estar logado." };
 
   const name = String(formData.get("name") ?? "").trim();
   const categoryId = String(formData.get("categoryId") ?? "");
   const yieldQty = Number(formData.get("yieldQty"));
   const unitPrice = Number(formData.get("unitPrice"));
-  const targetMarginPct = Number(formData.get("targetMarginPct") ?? 0);
-  const packagingCost = Number(formData.get("packagingCost") ?? 0);
-  const fixedCostPct = Number(formData.get("fixedCostPct") ?? 0);
+  const targetMarginPct = Number(formData.get("targetMarginPct"));
+  const packagingCost = Number(formData.get("packagingCost"));
+  const fixedCostPct = Number(formData.get("fixedCostPct"));
 
   // As listas (mesmo name) chegam alinhadas por índice.
   const ingredientIds = formData.getAll("ingredientId").map(String);
   const qtys = formData.getAll("qtyInBase").map((v) => Number(v));
 
-  if (!name) throw new Error("O nome do produto é obrigatório.");
-  if (!categoryId) throw new Error("Selecione a categoria do produto.");
-  if (!(yieldQty > 0)) throw new Error("O rendimento deve ser maior que zero.");
-  if (!(unitPrice > 0)) throw new Error("O preço de venda deve ser maior que zero.");
+  // Validação — devolve mensagem amigável em vez de quebrar a tela.
+  if (!name) return { error: "Informe o nome do produto." };
+  if (!categoryId) return { error: "Selecione a categoria do produto." };
+  if (!(yieldQty > 0)) return { error: "O rendimento (porções) deve ser maior que zero." };
+  if (!(unitPrice > 0)) return { error: "O preço de venda deve ser maior que zero." };
+  if (!(targetMarginPct >= 0 && targetMarginPct < 100)) {
+    return { error: "A margem alvo deve estar entre 0 e 99%." };
+  }
+  if (!(packagingCost >= 0)) return { error: "A embalagem não pode ser negativa." };
+  if (!(fixedCostPct >= 0)) return { error: "Os custos fixos não podem ser negativos." };
 
-  // Monta os pares válidos (insumo escolhido + quantidade > 0).
   const items = ingredientIds
     .map((id, i) => ({ ingredientId: id, qtyInBase: qtys[i] }))
     .filter((it) => it.ingredientId && it.qtyInBase > 0);
-  if (items.length === 0) throw new Error("Adicione ao menos um insumo.");
+  if (items.length === 0) {
+    return { error: "Adicione ao menos um insumo com quantidade maior que zero." };
+  }
 
   const category = await prisma.productCategory.findUniqueOrThrow({
     where: { id: categoryId },
