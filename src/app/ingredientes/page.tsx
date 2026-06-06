@@ -74,12 +74,20 @@ export default async function IngredientesPage() {
                       <span className="text-muted-foreground"> /{ing.baseUnit.baseUnit}</span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Link
-                        href={`/insumos/${ing.id}/editar`}
-                        className="text-sm text-muted-foreground hover:text-foreground hover:underline"
-                      >
-                        Editar
-                      </Link>
+                      <div className="flex items-center justify-end gap-3">
+                        <Link
+                          href={`/insumos/${ing.id}/compras`}
+                          className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+                        >
+                          Compras
+                        </Link>
+                        <Link
+                          href={`/insumos/${ing.id}/editar`}
+                          className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+                        >
+                          Editar
+                        </Link>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
