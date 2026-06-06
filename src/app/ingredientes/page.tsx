@@ -23,12 +23,20 @@ export default async function IngredientesPage() {
               Custo médio ponderado móvel de cada insumo.
             </p>
           </div>
-          <Link
-            href="/entradas/nova"
-            className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
-          >
-            Nova compra
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/insumos/novo"
+              className="rounded-lg border border-black/15 dark:border-white/15 px-4 py-2 text-sm font-medium hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            >
+              Novo insumo
+            </Link>
+            <Link
+              href="/entradas/nova"
+              className="rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+            >
+              Nova compra
+            </Link>
+          </div>
         </div>
 
         <div className="mt-6 overflow-hidden rounded-xl border border-black/10 dark:border-white/10">
