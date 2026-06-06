@@ -51,6 +51,7 @@ export default async function IngredientesPage() {
                   <TableHead>Categoria</TableHead>
                   <TableHead className="text-right">Estoque</TableHead>
                   <TableHead className="text-right">Custo médio</TableHead>
+                  <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -71,6 +72,14 @@ export default async function IngredientesPage() {
                     <TableCell className="text-right tabular-nums">
                       {formatBRL(Number(ing.avgCost))}
                       <span className="text-muted-foreground"> /{ing.baseUnit.baseUnit}</span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link
+                        href={`/insumos/${ing.id}/editar`}
+                        className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+                      >
+                        Editar
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))}
