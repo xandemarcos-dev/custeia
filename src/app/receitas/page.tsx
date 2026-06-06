@@ -53,6 +53,7 @@ export default async function ReceitasPage() {
                   <TableHead className="text-right">Custo do lote</TableHead>
                   <TableHead className="text-right">Custo / porção</TableHead>
                   <TableHead className="text-right">Preço venda</TableHead>
+                  <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -81,6 +82,14 @@ export default async function ReceitasPage() {
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {formatBRL(Number(r.unitPrice), 2)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Link
+                          href={`/receitas/${r.id}/editar`}
+                          className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+                        >
+                          Editar
+                        </Link>
                       </TableCell>
                     </TableRow>
                   );
