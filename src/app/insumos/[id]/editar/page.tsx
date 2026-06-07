@@ -20,7 +20,8 @@ export default async function EditarInsumoPage({
   const [ingredient, categories, units] = await Promise.all([
     prisma.ingredient.findUnique({ where: { id } }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
-    prisma.unit.findMany({ orderBy: { name: "asc" } }),
+    // Unidade base do insumo deve ser ATÔMICA (fator = 1): gr, ml, unidade.
+    prisma.unit.findMany({ where: { toBaseFactor: 1 }, orderBy: { name: "asc" } }),
   ]);
 
   if (!ingredient) notFound();
