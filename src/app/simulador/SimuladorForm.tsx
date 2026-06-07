@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { simulateAction, type SimState } from "./actions";
+import { simulateAction, type SimState, type ScenarioResult } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,13 +28,72 @@ const brl = (v: number, d = 4) =>
     maximumFractionDigits: d,
   }).format(v);
 
-export function SimuladorForm({
-  ingredients,
-  units,
+function ScenarioFields({ suffix, units }: { suffix: "A" | "B"; units: Option[] }) {
+  return (
+    <div className="space-y-3 rounded-lg border p-4">
+      <p className="text-sm font-medium">
+        Fornecedor {suffix}
+        {suffix === "B" && <span className="font-normal text-muted-foreground"> (opcional)</span>}
+      </p>
+      <div className="space-y-1.5">
+        <Label htmlFor={`unit${suffix}`}>Unidade de compra</Label>
+        <select id={`unit${suffix}`} name={`purchaseUnitId${suffix}`} className={selectCls} required={suffix === "A"}>
+          <option value="">Selecione…</option>
+          {units.map((u) => (
+            <option key={u.id} value={u.id}>{u.name}</option>
+          ))}
+        </select>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor={`qty${suffix}`}>Qtd</Label>
+          <Input id={`qty${suffix}`} name={`purchaseQty${suffix}`} type="number" step="any" min="0" required={suffix === "A"} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor={`price${suffix}`}>Preço un.</Label>
+          <Input id={`price${suffix}`} name={`unitPrice${suffix}`} type="number" step="any" min="0" required={suffix === "A"} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor={`freight${suffix}`}>Frete</Label>
+          <Input id={`freight${suffix}`} name={`freightTotal${suffix}`} type="number" step="any" min="0" defaultValue="0" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScenarioCard({
+  title,
+  s,
+  baseUnit,
+  highlight,
 }: {
-  ingredients: Option[];
-  units: Option[];
+  title: string;
+  s: ScenarioResult;
+  baseUnit: string;
+  highlight: boolean;
 }) {
+  return (
+    <div className={`rounded-lg border p-4 ${highlight ? "border-primary ring-1 ring-primary" : ""}`}>
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium">{title}</p>
+        {highlight && <Badge>mais barato</Badge>}
+      </div>
+      <p className="mt-2 text-sm text-muted-foreground">Custo efetivo</p>
+      <p className="text-lg font-semibold">
+        {brl(s.entryUnitCost)} <span className="text-sm font-normal text-muted-foreground">/{baseUnit}</span>
+      </p>
+      <p className="mt-2 text-sm">
+        Novo custo médio: <span className="font-medium">{brl(s.newAvgCost)}</span>{" "}
+        <span className={s.deltaAvgCost <= 0 ? "text-green-600" : "text-red-600"}>
+          ({s.deltaAvgCost <= 0 ? "▼" : "▲"} {brl(Math.abs(s.deltaAvgCost))})
+        </span>
+      </p>
+    </div>
+  );
+}
+
+export function SimuladorForm({ ingredients, units }: { ingredients: Option[]; units: Option[] }) {
   const [state, action, pending] = useActionState<SimState, FormData>(simulateAction, {});
   const r = state.result;
 
@@ -42,10 +101,7 @@ export function SimuladorForm({
     <div className="space-y-6">
       <form action={action} className="space-y-4">
         {state.error && (
-          <p
-            role="alert"
-            className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-          >
+          <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {state.error}
           </p>
         )}
@@ -58,59 +114,47 @@ export function SimuladorForm({
             ))}
           </select>
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="purchaseUnitId">Unidade de compra</Label>
-          <select id="purchaseUnitId" name="purchaseUnitId" required className={selectCls}>
-            <option value="">Selecione…</option>
-            {units.map((u) => (
-              <option key={u.id} value={u.id}>{u.name}</option>
-            ))}
-          </select>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <ScenarioFields suffix="A" units={units} />
+          <ScenarioFields suffix="B" units={units} />
         </div>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="purchaseQty">Quantidade</Label>
-            <Input id="purchaseQty" name="purchaseQty" type="number" step="any" min="0" required />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="unitPrice">Preço/unidade (R$)</Label>
-            <Input id="unitPrice" name="unitPrice" type="number" step="any" min="0" required />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="freightTotal">Frete (R$)</Label>
-            <Input id="freightTotal" name="freightTotal" type="number" step="any" min="0" defaultValue="0" />
-          </div>
-        </div>
+
         <Button type="submit" disabled={pending}>
-          {pending ? "Simulando…" : "Simular"}
+          {pending ? "Simulando…" : "Simular / Comparar"}
         </Button>
       </form>
 
       {r && (
-        <div className="rounded-xl border p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Custo médio de {r.ingredientName}</p>
-              <p className="text-lg">
-                <span className="text-muted-foreground line-through">{brl(r.currentAvg)}</span>
-                {" → "}
-                <span className="font-semibold">{brl(r.newAvgCost)}</span>
-                <span className="text-sm text-muted-foreground"> /{r.baseUnit}</span>
-              </p>
-            </div>
-            <Badge className={r.deltaAvgCost <= 0 ? "bg-green-600 text-white" : "bg-red-600 text-white"}>
-              {r.deltaAvgCost <= 0 ? "▼" : "▲"} {brl(Math.abs(r.deltaAvgCost))}
-            </Badge>
-          </div>
-          <p className="mt-3 text-sm">
-            {r.worthStocking
-              ? "✅ Esta compra ABAIXA seu custo médio — vale estocar."
-              : "⚠️ Esta compra NÃO abaixa seu custo médio. Só estoque se precisar do insumo."}
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            {r.ingredientName} — custo médio atual {brl(r.currentAvg)} /{r.baseUnit}
           </p>
 
+          <div className="grid gap-4 sm:grid-cols-2">
+            <ScenarioCard title="Fornecedor A" s={r.a} baseUnit={r.baseUnit} highlight={r.winner === "a"} />
+            {r.b && (
+              <ScenarioCard title="Fornecedor B" s={r.b} baseUnit={r.baseUnit} highlight={r.winner === "b"} />
+            )}
+          </div>
+
+          {r.b && r.winner === "empate" && (
+            <p className="text-sm text-muted-foreground">Os dois fornecedores dão o mesmo custo.</p>
+          )}
+
+          {!r.b && (
+            <p className="text-sm">
+              {r.a.worthStocking
+                ? "✅ Esta compra abaixa seu custo médio — vale estocar."
+                : "⚠️ Esta compra não abaixa seu custo médio. Só estoque se precisar do insumo."}
+            </p>
+          )}
+
           {r.recipes.length > 0 && (
-            <div className="mt-5">
-              <p className="mb-2 text-sm font-medium">Impacto na margem dos produtos</p>
+            <div>
+              <p className="mb-2 text-sm font-medium">
+                Impacto na margem {r.b ? "(cenário mais barato)" : ""}
+              </p>
               <Table>
                 <TableHeader>
                   <TableRow>

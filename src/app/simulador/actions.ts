@@ -6,13 +6,20 @@ import { simulatePurchase } from "@/services/simulatePurchase";
 import { sumIngredientCost } from "@/services/recipeCost";
 import { computeMargin } from "@/services/margin";
 
+export type ScenarioResult = {
+  entryUnitCost: number;
+  newAvgCost: number;
+  deltaAvgCost: number;
+  worthStocking: boolean;
+};
+
 export type SimResult = {
   ingredientName: string;
   baseUnit: string;
   currentAvg: number;
-  newAvgCost: number;
-  deltaAvgCost: number;
-  worthStocking: boolean;
+  a: ScenarioResult;
+  b: ScenarioResult | null;
+  winner: "a" | "b" | "empate" | null;
   recipes: {
     name: string;
     currentMargin: number;
@@ -23,37 +30,78 @@ export type SimResult = {
 
 export type SimState = { error?: string; result?: SimResult };
 
+async function scenario(
+  ingredient: { stockQty: unknown; avgCost: number },
+  purchaseUnitId: string,
+  purchaseQty: number,
+  unitPrice: number,
+  freightTotal: number
+): Promise<ScenarioResult> {
+  const unit = await prisma.unit.findUniqueOrThrow({ where: { id: purchaseUnitId } });
+  const sim = simulatePurchase({
+    stockQty: Number(ingredient.stockQty),
+    avgCost: ingredient.avgCost,
+    purchaseQty,
+    toBaseFactor: Number(unit.toBaseFactor),
+    unitPrice,
+    freightTotal,
+  });
+  return {
+    entryUnitCost: sim.entryUnitCost,
+    newAvgCost: sim.newAvgCost,
+    deltaAvgCost: sim.deltaAvgCost,
+    worthStocking: sim.worthStocking,
+  };
+}
+
 export async function simulateAction(_prev: SimState, formData: FormData): Promise<SimState> {
   const { isAuthenticated } = await auth();
   if (!isAuthenticated) return { error: "Você precisa estar logado." };
 
   const ingredientId = String(formData.get("ingredientId") ?? "");
-  const purchaseUnitId = String(formData.get("purchaseUnitId") ?? "");
-  const purchaseQty = Number(formData.get("purchaseQty"));
-  const unitPrice = Number(formData.get("unitPrice"));
-  const freightTotal = Number(formData.get("freightTotal") ?? 0);
+  // Fornecedor A (obrigatório)
+  const unitA = String(formData.get("purchaseUnitIdA") ?? "");
+  const qtyA = Number(formData.get("purchaseQtyA"));
+  const priceA = Number(formData.get("unitPriceA"));
+  const freightA = Number(formData.get("freightTotalA") ?? 0);
+  // Fornecedor B (opcional)
+  const unitB = String(formData.get("purchaseUnitIdB") ?? "");
+  const qtyB = Number(formData.get("purchaseQtyB"));
+  const priceB = Number(formData.get("unitPriceB"));
+  const freightB = Number(formData.get("freightTotalB") ?? 0);
 
-  if (!ingredientId || !purchaseUnitId) return { error: "Selecione o insumo e a unidade." };
-  if (!(purchaseQty > 0)) return { error: "A quantidade deve ser maior que zero." };
-  if (!(unitPrice >= 0)) return { error: "O preço não pode ser negativo." };
+  if (!ingredientId) return { error: "Selecione o insumo." };
+  if (!unitA) return { error: "Selecione a unidade do Fornecedor A." };
+  if (!(qtyA > 0)) return { error: "A quantidade do Fornecedor A deve ser maior que zero." };
+  if (!(priceA >= 0)) return { error: "O preço do Fornecedor A não pode ser negativo." };
+
+  const hasB = Boolean(unitB) && qtyB > 0 && priceB >= 0;
 
   const ingredient = await prisma.ingredient.findUniqueOrThrow({
     where: { id: ingredientId },
     include: { baseUnit: true },
   });
-  const purchaseUnit = await prisma.unit.findUniqueOrThrow({ where: { id: purchaseUnitId } });
-
   const currentAvg = Number(ingredient.avgCost);
-  const sim = simulatePurchase({
-    stockQty: Number(ingredient.stockQty),
-    avgCost: currentAvg,
-    purchaseQty,
-    toBaseFactor: Number(purchaseUnit.toBaseFactor),
-    unitPrice,
-    freightTotal,
-  });
+  const ingForSim = { stockQty: ingredient.stockQty, avgCost: currentAvg };
 
-  // Produtos afetados: recalcula a margem trocando o custo DESTE insumo pelo simulado.
+  const a = await scenario(ingForSim, unitA, qtyA, priceA, freightA);
+  const b = hasB ? await scenario(ingForSim, unitB, qtyB, priceB, freightB) : null;
+
+  let winner: SimResult["winner"] = null;
+  let chosenNewAvg = a.newAvgCost;
+  if (b) {
+    if (a.newAvgCost < b.newAvgCost) {
+      winner = "a";
+      chosenNewAvg = a.newAvgCost;
+    } else if (b.newAvgCost < a.newAvgCost) {
+      winner = "b";
+      chosenNewAvg = b.newAvgCost;
+    } else {
+      winner = "empate";
+    }
+  }
+
+  // Impacto na margem dos produtos, usando o custo do cenário vencedor (ou A).
   const recipes = await prisma.recipe.findMany({
     where: { isActive: true, groups: { some: { ingredients: { some: { ingredientId } } } } },
     include: { groups: { include: { ingredients: { include: { ingredient: true } } } } },
@@ -69,7 +117,7 @@ export async function simulateAction(_prev: SimState, formData: FormData): Promi
     const itemsNovo = r.groups.flatMap((g) =>
       g.ingredients.map((ri) => ({
         qtyInBase: Number(ri.qtyInBase),
-        avgCost: ri.ingredientId === ingredientId ? sim.newAvgCost : Number(ri.ingredient.avgCost),
+        avgCost: ri.ingredientId === ingredientId ? chosenNewAvg : Number(ri.ingredient.avgCost),
       }))
     );
     const base = {
@@ -94,9 +142,9 @@ export async function simulateAction(_prev: SimState, formData: FormData): Promi
       ingredientName: ingredient.name,
       baseUnit: ingredient.baseUnit.baseUnit,
       currentAvg,
-      newAvgCost: sim.newAvgCost,
-      deltaAvgCost: sim.deltaAvgCost,
-      worthStocking: sim.worthStocking,
+      a,
+      b,
+      winner,
       recipes: affected,
     },
   };
