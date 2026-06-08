@@ -120,9 +120,9 @@ ALLOWED_EMAILS=alexandre.marcos60@gmail.com,daygruberdoces@gmail.com
 
 ### 5.3 Página de login própria
 
-Decisão: **página de login própria** com a identidade do RIXAN (não o portal hospedado).
+Decisão: **página de login própria** com a identidade do **BatchFlow** (não o portal hospedado).
 
-- `src/app/sign-in/[[...sign-in]]/page.tsx` → componente `<SignIn />` do Clerk, dentro do layout/branding do RIXAN (logo, cores `#182131`).
+- `src/app/sign-in/[[...sign-in]]/page.tsx` → componente `<SignIn />` do Clerk, com o logo do BatchFlow (`/batchflow-logo.png`) sobre fundo `#182131`.
 - `src/app/sign-up/[[...sign-up]]/page.tsx` → componente `<SignUp />` (opcional; pode apontar para o mesmo fluxo).
 - `.env`: `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in` (e `..._SIGN_UP_URL=/sign-up`) para o `auth.protect()` redirecionar para a página própria.
 - Ambas já estão no matcher público do middleware (seção 5.1).

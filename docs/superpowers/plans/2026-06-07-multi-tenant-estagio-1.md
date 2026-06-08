@@ -300,11 +300,13 @@ git commit -m "feat(auth): add requireWorkspaceId helper with JIT provisioning"
 Create `src/app/sign-in/[[...sign-in]]/page.tsx`:
 
 ```tsx
+import Image from "next/image";
 import { SignIn } from "@clerk/nextjs";
 
 export default function SignInPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#182131] px-6">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-[#182131] px-6">
+      <Image src="/batchflow-logo.png" alt="BatchFlow" width={96} height={96} priority />
       <SignIn />
     </main>
   );
@@ -316,11 +318,13 @@ export default function SignInPage() {
 Create `src/app/sign-up/[[...sign-up]]/page.tsx`:
 
 ```tsx
+import Image from "next/image";
 import { SignUp } from "@clerk/nextjs";
 
 export default function SignUpPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#182131] px-6">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-[#182131] px-6">
+      <Image src="/batchflow-logo.png" alt="BatchFlow" width={96} height={96} priority />
       <SignUp />
     </main>
   );
