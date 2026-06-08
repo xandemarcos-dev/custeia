@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Rixan — custo sob controle",
+  title: "BatchFlow — custo sob controle",
   description: "Sistema de custeio e margem para o seu negócio.",
 };
 

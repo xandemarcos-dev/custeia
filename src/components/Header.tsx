@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import { prisma } from "@/lib/prisma";
@@ -29,8 +28,10 @@ export async function Header() {
   return (
     <header className="sticky top-0 z-10 border-b border-white/10 bg-[#182131] text-white">
       <div className="mx-auto flex h-16 max-w-5xl items-center gap-6 px-6">
-        <Link href="/ingredientes" className="flex items-center" aria-label="Rixan — início">
-          <Image src="/rixan-logo.png" alt="Rixan" width={376} height={368} priority className="h-9 w-auto" />
+        <Link href="/ingredientes" className="flex items-center" aria-label="BatchFlow — início">
+          <span className="text-lg font-semibold tracking-tight text-white">
+            Batch<span className="text-[#2bc4b0]">Flow</span>
+          </span>
         </Link>
         <nav className="flex items-center gap-1 text-sm">
           {navItems.map((item) => (
