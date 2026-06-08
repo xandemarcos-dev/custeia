@@ -56,7 +56,8 @@ export async function updateEntryAction(
   const entry = await prisma.ingredientEntry.findFirst({ where: { id: entryId, workspaceId }, select: { id: true } });
   if (!entry) return { error: "Compra não encontrada." };
 
-  const unit = await prisma.unit.findUniqueOrThrow({ where: { id: purchaseUnitId } });
+  const unit = await prisma.unit.findFirst({ where: { id: purchaseUnitId, workspaceId } });
+  if (!unit) return { error: "Unidade inválida." };
   const amounts = computeEntryAmounts({
     purchaseQty,
     toBaseFactor: Number(unit.toBaseFactor),

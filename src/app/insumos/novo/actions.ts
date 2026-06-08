@@ -24,6 +24,8 @@ export async function createIngredientAction(formData: FormData) {
   const workspaceId = await requireWorkspaceId();
   const category = await prisma.category.findFirst({ where: { id: categoryId, workspaceId }, select: { id: true } });
   if (!category) throw new Error("Categoria inválida.");
+  const baseUnit = await prisma.unit.findFirst({ where: { id: baseUnitId, workspaceId }, select: { id: true } });
+  if (!baseUnit) throw new Error("Unidade base inválida.");
 
   await prisma.ingredient.create({
     data: {

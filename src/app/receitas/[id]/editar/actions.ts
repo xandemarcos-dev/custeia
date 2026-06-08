@@ -39,10 +39,22 @@ export async function updateRecipeAction(
   if (!(packagingCost >= 0)) return { error: "A embalagem não pode ser negativa." };
   if (!(fixedCostPct >= 0)) return { error: "Os custos fixos não podem ser negativos." };
 
+  const ownedCat = await prisma.productCategory.findFirst({ where: { id: categoryId, workspaceId }, select: { id: true } });
+  if (!ownedCat) return { error: "Categoria inválida." };
+
   const items = ingredientIds
     .map((ingId, i) => ({ ingredientId: ingId, qtyInBase: qtys[i] }))
     .filter((it) => it.ingredientId && it.qtyInBase > 0);
   if (items.length === 0) return { error: "Adicione ao menos um insumo." };
+
+  // Garante que todos os insumos pertencem ao workspace (evita referência cruzada).
+  const uniqueIngredientIds = [...new Set(items.map((it) => it.ingredientId))];
+  const ownedIngredients = await prisma.ingredient.count({
+    where: { workspaceId, id: { in: uniqueIngredientIds } },
+  });
+  if (ownedIngredients !== uniqueIngredientIds.length) {
+    return { error: "Um ou mais insumos são inválidos." };
+  }
 
   // Atualiza campos e RECONSTRÓI a lista de ingredientes (apaga e recria), em transação.
   await prisma.$transaction(async (tx) => {

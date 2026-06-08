@@ -49,6 +49,15 @@ export async function createRecipeAction(
   const category = await prisma.productCategory.findFirst({ where: { id: categoryId, workspaceId }, select: { id: true } });
   if (!category) return { error: "Categoria inválida." };
 
+  // Garante que todos os insumos pertencem ao workspace (evita referência cruzada).
+  const uniqueIngredientIds = [...new Set(items.map((it) => it.ingredientId))];
+  const ownedIngredients = await prisma.ingredient.count({
+    where: { workspaceId, id: { in: uniqueIngredientIds } },
+  });
+  if (ownedIngredients !== uniqueIngredientIds.length) {
+    return { error: "Um ou mais insumos são inválidos." };
+  }
+
   // Cria receita + grupo + ingredientes numa só operação (escrita aninhada).
   await prisma.recipe.create({
     data: {
