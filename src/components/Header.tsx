@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 
 const navItems = [
   { href: "/ingredientes", label: "Insumos" },
@@ -11,9 +12,12 @@ const navItems = [
 ];
 
 async function getRestockCount(): Promise<number> {
+  // Fora do try: se requireWorkspaceId redirecionar, o redirect deve propagar
+  // (não pode ser engolido pelo catch).
+  const workspaceId = await requireWorkspaceId();
   try {
     const ings = await prisma.ingredient.findMany({
-      where: { minStockQty: { gt: 0 } },
+      where: { workspaceId, minStockQty: { gt: 0 } },
       select: { stockQty: true, minStockQty: true },
     });
     return ings.filter((i) => Number(i.stockQty) <= Number(i.minStockQty)).length;
