@@ -5,12 +5,17 @@ import { auth } from "@clerk/nextjs/server";
 import { simulatePurchase } from "@/services/simulatePurchase";
 import { sumIngredientCost } from "@/services/recipeCost";
 import { computeMargin } from "@/services/margin";
+import { dimensionOf, dimensionLabel, type Dimension } from "@/lib/dimension";
 
 export type ScenarioResult = {
   entryUnitCost: number;
   newAvgCost: number;
   deltaAvgCost: number;
   worthStocking: boolean;
+  totalCost: number;
+  freightTotal: number;
+  purchaseQty: number;
+  unitPrice: number;
 };
 
 export type SimResult = {
@@ -32,12 +37,21 @@ export type SimState = { error?: string; result?: SimResult };
 
 async function scenario(
   ingredient: { stockQty: unknown; avgCost: number },
+  ingDim: Dimension,
   purchaseUnitId: string,
   purchaseQty: number,
   unitPrice: number,
   freightTotal: number
 ): Promise<ScenarioResult> {
   const unit = await prisma.unit.findUniqueOrThrow({ where: { id: purchaseUnitId } });
+  // Consistência de dimensão (R6).
+  const buyDim = dimensionOf(unit.baseUnit);
+  if (ingDim !== buyDim) {
+    throw new Error(
+      `Unidade incompatível: o insumo é medido em ${dimensionLabel(ingDim)} ` +
+        `e "${unit.name}" é de ${dimensionLabel(buyDim)}.`
+    );
+  }
   const sim = simulatePurchase({
     stockQty: Number(ingredient.stockQty),
     avgCost: ingredient.avgCost,
@@ -51,6 +65,10 @@ async function scenario(
     newAvgCost: sim.newAvgCost,
     deltaAvgCost: sim.deltaAvgCost,
     worthStocking: sim.worthStocking,
+    totalCost: purchaseQty * unitPrice + freightTotal,
+    freightTotal,
+    purchaseQty,
+    unitPrice,
   };
 }
 
@@ -83,9 +101,16 @@ export async function simulateAction(_prev: SimState, formData: FormData): Promi
   });
   const currentAvg = Number(ingredient.avgCost);
   const ingForSim = { stockQty: ingredient.stockQty, avgCost: currentAvg };
+  const ingDim = dimensionOf(ingredient.baseUnit.baseUnit);
 
-  const a = await scenario(ingForSim, unitA, qtyA, priceA, freightA);
-  const b = hasB ? await scenario(ingForSim, unitB, qtyB, priceB, freightB) : null;
+  let a: ScenarioResult;
+  let b: ScenarioResult | null;
+  try {
+    a = await scenario(ingForSim, ingDim, unitA, qtyA, priceA, freightA);
+    b = hasB ? await scenario(ingForSim, ingDim, unitB, qtyB, priceB, freightB) : null;
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Erro ao simular." };
+  }
 
   let winner: SimResult["winner"] = null;
   let chosenNewAvg = a.newAvgCost;

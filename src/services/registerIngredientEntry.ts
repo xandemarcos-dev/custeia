@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { computeEntryAmounts } from "./entryMath";
 import { recalcAvgCost } from "./avgCost";
+import { dimensionOf, dimensionLabel } from "@/lib/dimension";
 
 export interface RegisterEntryInput {
   workspaceId: string;
@@ -20,15 +21,27 @@ export interface RegisterEntryInput {
  */
 export async function registerIngredientEntry(input: RegisterEntryInput) {
   return prisma.$transaction(async (tx) => {
-    // 1. Lê o ingrediente (estado atual: estoque e custo médio).
+    // 1. Lê o ingrediente (estado atual + unidade base, para checar dimensão).
     const ingredient = await tx.ingredient.findUniqueOrThrow({
       where: { id: input.ingredientId },
+      include: { baseUnit: true },
     });
 
     // 2. Lê a unidade de compra (para o fator de conversão).
     const purchaseUnit = await tx.unit.findUniqueOrThrow({
       where: { id: input.purchaseUnitId },
     });
+
+    // 2b. Consistência de dimensão (R6): não dá para comprar em volume um
+    // insumo medido em massa, etc. Evita corromper qtyInBase silenciosamente.
+    const ingDim = dimensionOf(ingredient.baseUnit.baseUnit);
+    const buyDim = dimensionOf(purchaseUnit.baseUnit);
+    if (ingDim !== buyDim) {
+      throw new Error(
+        `Unidade incompatível: o insumo é medido em ${dimensionLabel(ingDim)} ` +
+          `e a unidade de compra "${purchaseUnit.name}" é de ${dimensionLabel(buyDim)}.`
+      );
+    }
 
     // 3. Converte e calcula os valores da entrada (função pura testada).
     const amounts = computeEntryAmounts({

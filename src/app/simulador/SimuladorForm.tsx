@@ -1,11 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { simulateAction, type SimState, type ScenarioResult } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import type { Dimension } from "@/lib/dimension";
+import { dimensionLabel } from "@/lib/dimension";
 import {
   Table,
   TableBody,
@@ -16,6 +18,8 @@ import {
 } from "@/components/ui/table";
 
 type Option = { id: string; name: string };
+type IngredientOption = { id: string; name: string; dimension: Dimension };
+type UnitOption = { id: string; name: string; dimension: Dimension };
 
 const selectCls =
   "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]";
@@ -28,7 +32,19 @@ const brl = (v: number, d = 4) =>
     maximumFractionDigits: d,
   }).format(v);
 
-function ScenarioFields({ suffix, units }: { suffix: "A" | "B"; units: Option[] }) {
+function ScenarioFields({
+  suffix,
+  units,
+  disabled,
+  freight,
+  onFreightChange,
+}: {
+  suffix: "A" | "B";
+  units: UnitOption[];
+  disabled: boolean;
+  freight: string;
+  onFreightChange: (v: string) => void;
+}) {
   return (
     <div className="space-y-3 rounded-lg border p-4">
       <p className="text-sm font-medium">
@@ -37,8 +53,14 @@ function ScenarioFields({ suffix, units }: { suffix: "A" | "B"; units: Option[] 
       </p>
       <div className="space-y-1.5">
         <Label htmlFor={`unit${suffix}`}>Unidade de compra</Label>
-        <select id={`unit${suffix}`} name={`purchaseUnitId${suffix}`} className={selectCls} required={suffix === "A"}>
-          <option value="">Selecione…</option>
+        <select
+          id={`unit${suffix}`}
+          name={`purchaseUnitId${suffix}`}
+          className={`${selectCls} disabled:cursor-not-allowed disabled:opacity-60`}
+          required={suffix === "A"}
+          disabled={disabled}
+        >
+          <option value="">{disabled ? "Escolha o insumo primeiro" : "Selecione…"}</option>
           {units.map((u) => (
             <option key={u.id} value={u.id}>{u.name}</option>
           ))}
@@ -54,8 +76,16 @@ function ScenarioFields({ suffix, units }: { suffix: "A" | "B"; units: Option[] 
           <Input id={`price${suffix}`} name={`unitPrice${suffix}`} type="number" step="any" min="0" required={suffix === "A"} />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor={`freight${suffix}`}>Frete</Label>
-          <Input id={`freight${suffix}`} name={`freightTotal${suffix}`} type="number" step="any" min="0" defaultValue="0" />
+          <Label htmlFor={`freight${suffix}`}>Frete total (R$)</Label>
+          <Input
+            id={`freight${suffix}`}
+            name={`freightTotal${suffix}`}
+            type="number"
+            step="any"
+            min="0"
+            value={freight}
+            onChange={(e) => onFreightChange(e.target.value)}
+          />
         </div>
       </div>
     </div>
@@ -73,11 +103,17 @@ function ScenarioCard({
   baseUnit: string;
   highlight: boolean;
 }) {
+  const productoCost = s.purchaseQty * s.unitPrice;
   return (
     <div className={`rounded-lg border p-4 ${highlight ? "border-primary ring-1 ring-primary" : ""}`}>
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium">{title}</p>
         {highlight && <Badge>mais barato</Badge>}
+      </div>
+      <div className="mt-2 space-y-0.5 text-xs text-muted-foreground">
+        <p>Produto: {brl(productoCost, 2)}</p>
+        <p>Frete: {brl(s.freightTotal, 2)}</p>
+        <p className="font-medium text-foreground">Total: {brl(s.totalCost, 2)}</p>
       </div>
       <p className="mt-2 text-sm text-muted-foreground">Custo efetivo</p>
       <p className="text-lg font-semibold">
@@ -93,9 +129,25 @@ function ScenarioCard({
   );
 }
 
-export function SimuladorForm({ ingredients, units }: { ingredients: Option[]; units: Option[] }) {
+export function SimuladorForm({
+  ingredients,
+  units,
+}: {
+  ingredients: IngredientOption[];
+  units: UnitOption[];
+}) {
   const [state, action, pending] = useActionState<SimState, FormData>(simulateAction, {});
+  const [ingredientId, setIngredientId] = useState("");
+  const [freightA, setFreightA] = useState("0");
+  const [freightB, setFreightB] = useState("0");
   const r = state.result;
+
+  const selectedIng = ingredients.find((i) => i.id === ingredientId);
+  // Só unidades da mesma dimensão do insumo (R6 — prevenção por design).
+  const unitOptions = useMemo(
+    () => (selectedIng ? units.filter((u) => u.dimension === selectedIng.dimension) : []),
+    [selectedIng, units]
+  );
 
   return (
     <div className="space-y-6">
@@ -107,7 +159,14 @@ export function SimuladorForm({ ingredients, units }: { ingredients: Option[]; u
         )}
         <div className="space-y-1.5">
           <Label htmlFor="ingredientId">Insumo</Label>
-          <select id="ingredientId" name="ingredientId" required className={selectCls}>
+          <select
+            id="ingredientId"
+            name="ingredientId"
+            required
+            className={selectCls}
+            value={ingredientId}
+            onChange={(e) => setIngredientId(e.target.value)}
+          >
             <option value="">Selecione…</option>
             {ingredients.map((i) => (
               <option key={i.id} value={i.id}>{i.name}</option>
@@ -116,8 +175,8 @@ export function SimuladorForm({ ingredients, units }: { ingredients: Option[]; u
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <ScenarioFields suffix="A" units={units} />
-          <ScenarioFields suffix="B" units={units} />
+          <ScenarioFields suffix="A" units={unitOptions} disabled={!selectedIng} freight={freightA} onFreightChange={setFreightA} />
+          <ScenarioFields suffix="B" units={unitOptions} disabled={!selectedIng} freight={freightB} onFreightChange={setFreightB} />
         </div>
 
         <Button type="submit" disabled={pending}>

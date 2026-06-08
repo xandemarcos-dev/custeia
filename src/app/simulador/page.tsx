@@ -1,15 +1,27 @@
 import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { dimensionOf } from "@/lib/dimension";
 import { SimuladorForm } from "./SimuladorForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function SimuladorPage() {
   const [ingredients, units] = await Promise.all([
-    prisma.ingredient.findMany({ orderBy: { name: "asc" } }),
+    prisma.ingredient.findMany({ orderBy: { name: "asc" }, include: { baseUnit: true } }),
     prisma.unit.findMany({ orderBy: { name: "asc" } }),
   ]);
+
+  const ingredientOpts = ingredients.map((i) => ({
+    id: i.id,
+    name: i.name,
+    dimension: dimensionOf(i.baseUnit.baseUnit),
+  }));
+  const unitOpts = units.map((u) => ({
+    id: u.id,
+    name: u.name,
+    dimension: dimensionOf(u.baseUnit),
+  }));
 
   return (
     <>
@@ -23,7 +35,7 @@ export default async function SimuladorPage() {
             </p>
           </CardHeader>
           <CardContent>
-            <SimuladorForm ingredients={ingredients} units={units} />
+            <SimuladorForm ingredients={ingredientOpts} units={unitOpts} />
           </CardContent>
         </Card>
       </main>
