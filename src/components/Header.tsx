@@ -8,6 +8,7 @@ const navItems = [
   { href: "/receitas", label: "Produtos" },
   { href: "/margem", label: "Margem" },
   { href: "/simulador", label: "Simular" },
+  { href: "/unidades", label: "Unidades" },
 ];
 
 async function getRestockCount(): Promise<number> {

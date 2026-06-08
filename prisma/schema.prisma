@@ -111,6 +111,8 @@ model Unit {
   ingredients       Ingredient[]      @relation("IngredientBaseUnit")
   ingredientEntries IngredientEntry[] @relation("EntryPurchaseUnit")
 
+  // Impede unidades duplicadas (mesmo nome) dentro do mesmo workspace.
+  @@unique([workspaceId, name])
   @@map("units")
 }
 
