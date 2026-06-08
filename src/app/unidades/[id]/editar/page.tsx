@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EditUnitForm } from "./EditUnitForm";
@@ -16,9 +17,10 @@ export default async function EditarUnidadePage({
 }) {
   const { id } = await params;
   const { erro } = await searchParams;
+  const workspaceId = await requireWorkspaceId();
 
   const [unit, asBase, asPurchase] = await Promise.all([
-    prisma.unit.findUnique({ where: { id } }),
+    prisma.unit.findFirst({ where: { id, workspaceId } }),
     prisma.ingredient.count({ where: { baseUnitId: id } }),
     prisma.ingredientEntry.count({ where: { purchaseUnitId: id } }),
   ]);

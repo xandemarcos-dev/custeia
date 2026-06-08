@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -14,7 +15,9 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 export default async function UnidadesPage() {
+  const workspaceId = await requireWorkspaceId();
   const units = await prisma.unit.findMany({
+    where: { workspaceId },
     orderBy: [{ baseUnit: "asc" }, { toBaseFactor: "asc" }],
   });
 

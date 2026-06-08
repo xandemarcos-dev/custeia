@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EditIngredientForm } from "./EditIngredientForm";
@@ -16,12 +17,13 @@ export default async function EditarInsumoPage({
 }) {
   const { id } = await params;
   const { erro } = await searchParams;
+  const workspaceId = await requireWorkspaceId();
 
   const [ingredient, categories, units] = await Promise.all([
-    prisma.ingredient.findUnique({ where: { id } }),
-    prisma.category.findMany({ orderBy: { name: "asc" } }),
+    prisma.ingredient.findFirst({ where: { id, workspaceId } }),
+    prisma.category.findMany({ where: { workspaceId }, orderBy: { name: "asc" } }),
     // Unidade base do insumo deve ser ATÔMICA (fator = 1): gr, ml, unidade.
-    prisma.unit.findMany({ where: { toBaseFactor: 1 }, orderBy: { name: "asc" } }),
+    prisma.unit.findMany({ where: { workspaceId, toBaseFactor: 1 }, orderBy: { name: "asc" } }),
   ]);
 
   if (!ingredient) notFound();

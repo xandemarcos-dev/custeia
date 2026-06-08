@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { formatBRL } from "@/lib/format";
 import { Header } from "@/components/Header";
 import { buttonVariants } from "@/components/ui/button";
@@ -19,8 +20,9 @@ export const dynamic = "force-dynamic";
 
 export default async function ComprasPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const ingredient = await prisma.ingredient.findUnique({
-    where: { id },
+  const workspaceId = await requireWorkspaceId();
+  const ingredient = await prisma.ingredient.findFirst({
+    where: { id, workspaceId },
     include: {
       baseUnit: true,
       entries: {

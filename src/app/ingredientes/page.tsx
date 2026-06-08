@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { formatBRL } from "@/lib/format";
 import { Header } from "@/components/Header";
 import { buttonVariants } from "@/components/ui/button";
@@ -16,7 +17,9 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function IngredientesPage() {
+  const workspaceId = await requireWorkspaceId();
   const ingredients = await prisma.ingredient.findMany({
+    where: { workspaceId },
     include: { category: true, baseUnit: true },
     orderBy: { name: "asc" },
   });

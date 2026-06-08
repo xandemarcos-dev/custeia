@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RecipeForm } from "./RecipeForm";
@@ -6,9 +7,11 @@ import { RecipeForm } from "./RecipeForm";
 export const dynamic = "force-dynamic";
 
 export default async function NovaReceitaPage() {
+  const workspaceId = await requireWorkspaceId();
   const [categories, ingredientsRaw] = await Promise.all([
-    prisma.productCategory.findMany({ orderBy: { name: "asc" } }),
+    prisma.productCategory.findMany({ where: { workspaceId }, orderBy: { name: "asc" } }),
     prisma.ingredient.findMany({
+      where: { workspaceId },
       include: { baseUnit: true },
       orderBy: { name: "asc" },
     }),

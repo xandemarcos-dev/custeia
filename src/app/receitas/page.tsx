@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { formatBRL } from "@/lib/format";
 import { sumIngredientCost } from "@/services/recipeCost";
 import { Header } from "@/components/Header";
@@ -17,8 +18,9 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function ReceitasPage() {
+  const workspaceId = await requireWorkspaceId();
   const recipes = await prisma.recipe.findMany({
-    where: { isActive: true },
+    where: { isActive: true, workspaceId },
     include: {
       category: true,
       groups: { include: { ingredients: { include: { ingredient: true } } } },

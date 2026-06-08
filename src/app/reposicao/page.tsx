@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,9 +16,10 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function ReposicaoPage() {
+  const workspaceId = await requireWorkspaceId();
   // Só faz sentido alertar quem tem um mínimo definido (> 0).
   const ingredients = await prisma.ingredient.findMany({
-    where: { minStockQty: { gt: 0 } },
+    where: { workspaceId, minStockQty: { gt: 0 } },
     include: { category: true, baseUnit: true },
     orderBy: { name: "asc" },
   });
