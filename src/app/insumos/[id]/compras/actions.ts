@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { auth } from "@clerk/nextjs/server";
 import { computeEntryAmounts } from "@/services/entryMath";
 import { recomputeIngredient } from "@/services/recomputeIngredient";
@@ -14,6 +15,10 @@ export async function deleteEntryAction(formData: FormData): Promise<void> {
   const entryId = String(formData.get("entryId") ?? "");
   const ingredientId = String(formData.get("ingredientId") ?? "");
   if (!entryId || !ingredientId) throw new Error("Dados inválidos.");
+
+  const workspaceId = await requireWorkspaceId();
+  const entry = await prisma.ingredientEntry.findFirst({ where: { id: entryId, workspaceId }, select: { id: true } });
+  if (!entry) throw new Error("Compra não encontrada.");
 
   await prisma.ingredientEntry.delete({ where: { id: entryId } });
   await recomputeIngredient(ingredientId); // reprocessa o histórico restante
@@ -46,6 +51,10 @@ export async function updateEntryAction(
   if (!(unitPrice >= 0)) return { error: "O preço não pode ser negativo." };
   if (!(freightTotal >= 0)) return { error: "O frete não pode ser negativo." };
   if (!entryDateStr) return { error: "Informe a data." };
+
+  const workspaceId = await requireWorkspaceId();
+  const entry = await prisma.ingredientEntry.findFirst({ where: { id: entryId, workspaceId }, select: { id: true } });
+  if (!entry) return { error: "Compra não encontrada." };
 
   const unit = await prisma.unit.findUniqueOrThrow({ where: { id: purchaseUnitId } });
   const amounts = computeEntryAmounts({

@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { auth } from "@clerk/nextjs/server";
 import { simulatePurchase } from "@/services/simulatePurchase";
 import { sumIngredientCost } from "@/services/recipeCost";
@@ -41,9 +42,10 @@ async function scenario(
   purchaseUnitId: string,
   purchaseQty: number,
   unitPrice: number,
-  freightTotal: number
+  freightTotal: number,
+  workspaceId: string
 ): Promise<ScenarioResult> {
-  const unit = await prisma.unit.findUniqueOrThrow({ where: { id: purchaseUnitId } });
+  const unit = await prisma.unit.findFirstOrThrow({ where: { id: purchaseUnitId, workspaceId } });
   // Consistência de dimensão (R6).
   const buyDim = dimensionOf(unit.baseUnit);
   if (ingDim !== buyDim) {
@@ -95,8 +97,9 @@ export async function simulateAction(_prev: SimState, formData: FormData): Promi
 
   const hasB = Boolean(unitB) && qtyB > 0 && priceB >= 0;
 
-  const ingredient = await prisma.ingredient.findUniqueOrThrow({
-    where: { id: ingredientId },
+  const workspaceId = await requireWorkspaceId();
+  const ingredient = await prisma.ingredient.findFirstOrThrow({
+    where: { id: ingredientId, workspaceId },
     include: { baseUnit: true },
   });
   const currentAvg = Number(ingredient.avgCost);
@@ -106,8 +109,8 @@ export async function simulateAction(_prev: SimState, formData: FormData): Promi
   let a: ScenarioResult;
   let b: ScenarioResult | null;
   try {
-    a = await scenario(ingForSim, ingDim, unitA, qtyA, priceA, freightA);
-    b = hasB ? await scenario(ingForSim, ingDim, unitB, qtyB, priceB, freightB) : null;
+    a = await scenario(ingForSim, ingDim, unitA, qtyA, priceA, freightA, workspaceId);
+    b = hasB ? await scenario(ingForSim, ingDim, unitB, qtyB, priceB, freightB, workspaceId) : null;
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Erro ao simular." };
   }
@@ -128,7 +131,7 @@ export async function simulateAction(_prev: SimState, formData: FormData): Promi
 
   // Impacto na margem dos produtos, usando o custo do cenário vencedor (ou A).
   const recipes = await prisma.recipe.findMany({
-    where: { isActive: true, groups: { some: { ingredients: { some: { ingredientId } } } } },
+    where: { workspaceId, isActive: true, groups: { some: { ingredients: { some: { ingredientId } } } } },
     include: { groups: { include: { ingredients: { include: { ingredient: true } } } } },
   });
 

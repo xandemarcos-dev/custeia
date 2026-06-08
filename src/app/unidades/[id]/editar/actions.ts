@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -31,13 +32,14 @@ export async function updateUnitAction(
   if (!id) return { error: "Unidade inválida." };
   if (!name) return { error: "O nome da unidade é obrigatório." };
 
-  const unit = await prisma.unit.findUnique({ where: { id } });
+  const workspaceId = await requireWorkspaceId();
+  const unit = await prisma.unit.findFirst({ where: { id, workspaceId } });
   if (!unit) return { error: "Unidade não encontrada." };
 
   // Bloqueia nome duplicado (ignorando caixa/espaços) no mesmo workspace, exceto ela mesma.
   const dup = await prisma.unit.findFirst({
     where: {
-      workspaceId: unit.workspaceId,
+      workspaceId,
       name: { equals: name, mode: "insensitive" },
       id: { not: id },
     },
@@ -71,6 +73,10 @@ export async function deleteUnitAction(formData: FormData): Promise<void> {
 
   const id = String(formData.get("id") ?? "");
   if (!id) throw new Error("Unidade inválida.");
+
+  const workspaceId = await requireWorkspaceId();
+  const unit = await prisma.unit.findFirst({ where: { id, workspaceId }, select: { id: true } });
+  if (!unit) throw new Error("Unidade não encontrada.");
 
   // Trava de integridade: só exclui se nenhum insumo ou compra usar a unidade.
   if ((await countUsage(id)) > 0) {

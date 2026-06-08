@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -22,15 +23,12 @@ export async function createUnitAction(
   if (!baseUnit) return { error: "A unidade base é obrigatória." };
   if (!(toBaseFactor > 0)) return { error: "O fator de conversão deve ser maior que zero." };
 
-  // Mesma realidade do resto do app: workspace único existente.
-  const workspace = await prisma.workspace.findFirstOrThrow({
-    select: { id: true },
-  });
+  const workspaceId = await requireWorkspaceId();
 
   // Bloqueia duplicado por nome (ignorando caixa/espaços) no mesmo workspace.
   const dup = await prisma.unit.findFirst({
     where: {
-      workspaceId: workspace.id,
+      workspaceId,
       name: { equals: name, mode: "insensitive" },
     },
     select: { id: true },
@@ -38,7 +36,7 @@ export async function createUnitAction(
   if (dup) return { error: `Já existe uma unidade chamada "${name}".` };
 
   await prisma.unit.create({
-    data: { workspaceId: workspace.id, name, baseUnit, toBaseFactor },
+    data: { workspaceId, name, baseUnit, toBaseFactor },
   });
 
   revalidatePath("/unidades");

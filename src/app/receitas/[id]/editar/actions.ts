@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -28,6 +29,10 @@ export async function updateRecipeAction(
   if (!id) return { error: "Produto inválido." };
   if (!name) return { error: "Informe o nome do produto." };
   if (!categoryId) return { error: "Selecione a categoria." };
+
+  const workspaceId = await requireWorkspaceId();
+  const owned = await prisma.recipe.findFirst({ where: { id, workspaceId }, select: { id: true } });
+  if (!owned) return { error: "Receita não encontrada." };
   if (!(yieldQty > 0)) return { error: "O rendimento deve ser maior que zero." };
   if (!(unitPrice > 0)) return { error: "O preço de venda deve ser maior que zero." };
   if (!(targetMarginPct >= 0 && targetMarginPct < 100)) return { error: "A margem alvo deve estar entre 0 e 99%." };
@@ -70,6 +75,10 @@ export async function deleteRecipeAction(formData: FormData): Promise<void> {
 
   const id = String(formData.get("id") ?? "");
   if (!id) throw new Error("Produto inválido.");
+
+  const workspaceId = await requireWorkspaceId();
+  const owned = await prisma.recipe.findFirst({ where: { id, workspaceId }, select: { id: true } });
+  if (!owned) throw new Error("Receita não encontrada.");
 
   // Apaga de baixo para cima: ingredientes-da-receita → grupos → receita.
   await prisma.$transaction([

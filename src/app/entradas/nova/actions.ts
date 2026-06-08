@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { registerIngredientEntry } from "@/services/registerIngredientEntry";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
@@ -22,15 +23,13 @@ export async function createEntryAction(formData: FormData) {
     throw new Error("Selecione o insumo e a unidade de compra.");
   }
 
-  // Descobre o workspace a partir do insumo escolhido.
-  const ingredient = await prisma.ingredient.findUniqueOrThrow({
-    where: { id: ingredientId },
-    select: { workspaceId: true },
-  });
+  const workspaceId = await requireWorkspaceId();
+  const ingredient = await prisma.ingredient.findFirst({ where: { id: ingredientId, workspaceId }, select: { workspaceId: true } });
+  if (!ingredient) throw new Error("Insumo inválido.");
 
   // Chama a PONTE — a mesma regra de negócio do Passo 4 e do seed.
   await registerIngredientEntry({
-    workspaceId: ingredient.workspaceId,
+    workspaceId,
     ingredientId,
     entryDate: new Date(),
     purchaseUnitId,
