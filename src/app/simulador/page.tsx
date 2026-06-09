@@ -23,6 +23,8 @@ export default async function SimuladorPage() {
     id: u.id,
     name: u.name,
     dimension: dimensionOf(u.baseUnit),
+    baseUnit: u.baseUnit,
+    toBaseFactor: Number(u.toBaseFactor),
   }));
 
   return (

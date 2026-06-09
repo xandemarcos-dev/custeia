@@ -79,23 +79,26 @@ export async function simulateAction(_prev: SimState, formData: FormData): Promi
   if (!isAuthenticated) return { error: "Você precisa estar logado." };
 
   const ingredientId = String(formData.get("ingredientId") ?? "");
-  // Fornecedor A (obrigatório)
+  // Fornecedor A (obrigatório). O usuário informa o TOTAL pago pelos itens;
+  // o preço unitário é derivado (total ÷ qtd).
   const unitA = String(formData.get("purchaseUnitIdA") ?? "");
   const qtyA = Number(formData.get("purchaseQtyA"));
-  const priceA = Number(formData.get("unitPriceA"));
+  const totalA = Number(formData.get("productTotalA"));
   const freightA = Number(formData.get("freightTotalA") ?? 0);
   // Fornecedor B (opcional)
   const unitB = String(formData.get("purchaseUnitIdB") ?? "");
   const qtyB = Number(formData.get("purchaseQtyB"));
-  const priceB = Number(formData.get("unitPriceB"));
+  const totalB = Number(formData.get("productTotalB"));
   const freightB = Number(formData.get("freightTotalB") ?? 0);
 
   if (!ingredientId) return { error: "Selecione o insumo." };
   if (!unitA) return { error: "Selecione a unidade do Fornecedor A." };
   if (!(qtyA > 0)) return { error: "A quantidade do Fornecedor A deve ser maior que zero." };
-  if (!(priceA >= 0)) return { error: "O preço do Fornecedor A não pode ser negativo." };
+  if (!(totalA >= 0)) return { error: "O preço total do Fornecedor A não pode ser negativo." };
 
-  const hasB = Boolean(unitB) && qtyB > 0 && priceB >= 0;
+  const hasB = Boolean(unitB) && qtyB > 0 && totalB >= 0;
+  const priceA = totalA / qtyA;
+  const priceB = qtyB > 0 ? totalB / qtyB : 0;
 
   const workspaceId = await requireWorkspaceId();
   const ingredient = await prisma.ingredient.findFirstOrThrow({

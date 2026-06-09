@@ -24,6 +24,8 @@ export default async function NovaEntradaPage() {
     dimension: dimensionOf(i.baseUnit.baseUnit),
   }));
   const unitOpts = units.map((u) => ({
+    baseUnit: u.baseUnit,
+    toBaseFactor: Number(u.toBaseFactor),
     id: u.id,
     name: u.name,
     dimension: dimensionOf(u.baseUnit),

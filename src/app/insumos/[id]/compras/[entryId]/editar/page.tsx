@@ -20,6 +20,13 @@ export default async function EditarCompraPage({
   ]);
   if (!entry || entry.ingredientId !== id) notFound();
 
+  const unitOpts = units.map((u) => ({
+    id: u.id,
+    name: u.name,
+    baseUnit: u.baseUnit,
+    toBaseFactor: Number(u.toBaseFactor),
+  }));
+
   return (
     <>
       <Header />
@@ -42,7 +49,7 @@ export default async function EditarCompraPage({
                 freightTotal: Number(entry.freightTotal),
                 entryDate: entry.entryDate.toISOString().slice(0, 10),
               }}
-              units={units}
+              units={unitOpts}
             />
           </CardContent>
         </Card>

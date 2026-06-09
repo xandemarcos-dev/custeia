@@ -42,15 +42,18 @@ export async function updateEntryAction(
   const ingredientId = String(formData.get("ingredientId") ?? "");
   const purchaseUnitId = String(formData.get("purchaseUnitId") ?? "");
   const purchaseQty = Number(formData.get("purchaseQty"));
-  const unitPrice = Number(formData.get("unitPrice"));
+  // Total pago pelos itens (sem frete); o preço unitário é derivado.
+  const productTotal = Number(formData.get("productTotal"));
   const freightTotal = Number(formData.get("freightTotal") ?? 0);
   const entryDateStr = String(formData.get("entryDate") ?? "");
 
   if (!entryId || !ingredientId || !purchaseUnitId) return { error: "Dados inválidos." };
   if (!(purchaseQty > 0)) return { error: "A quantidade deve ser maior que zero." };
-  if (!(unitPrice >= 0)) return { error: "O preço não pode ser negativo." };
+  if (!(productTotal >= 0)) return { error: "O preço total não pode ser negativo." };
   if (!(freightTotal >= 0)) return { error: "O frete não pode ser negativo." };
   if (!entryDateStr) return { error: "Informe a data." };
+
+  const unitPrice = productTotal / purchaseQty;
 
   const workspaceId = await requireWorkspaceId();
   const entry = await prisma.ingredientEntry.findFirst({ where: { id: entryId, workspaceId }, select: { id: true } });

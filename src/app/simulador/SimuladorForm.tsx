@@ -19,7 +19,13 @@ import {
 
 type Option = { id: string; name: string };
 type IngredientOption = { id: string; name: string; dimension: Dimension };
-type UnitOption = { id: string; name: string; dimension: Dimension };
+type UnitOption = {
+  id: string;
+  name: string;
+  dimension: Dimension;
+  baseUnit: string;
+  toBaseFactor: number;
+};
 
 const selectCls =
   "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]";
@@ -45,6 +51,26 @@ function ScenarioFields({
   freight: string;
   onFreightChange: (v: string) => void;
 }) {
+  const [unitId, setUnitId] = useState("");
+  const [qty, setQty] = useState("");
+  const [total, setTotal] = useState("");
+
+  const selectedUnit = units.find((u) => u.id === unitId);
+
+  const preview = useMemo(() => {
+    const q = Number(qty);
+    const t = Number(total);
+    const f = Number(freight) || 0;
+    if (!selectedUnit || !(q > 0) || !(t >= 0)) return null;
+    const qtyInBase = q * selectedUnit.toBaseFactor;
+    if (!(qtyInBase > 0)) return null;
+    return {
+      grandTotal: t + f,
+      costPerBase: (t + f) / qtyInBase,
+      baseUnit: selectedUnit.baseUnit,
+    };
+  }, [qty, total, freight, selectedUnit]);
+
   return (
     <div className="space-y-3 rounded-lg border p-4">
       <p className="text-sm font-medium">
@@ -59,6 +85,8 @@ function ScenarioFields({
           className={`${selectCls} disabled:cursor-not-allowed disabled:opacity-60`}
           required={suffix === "A"}
           disabled={disabled}
+          value={unitId}
+          onChange={(e) => setUnitId(e.target.value)}
         >
           <option value="">{disabled ? "Escolha o insumo primeiro" : "Selecione…"}</option>
           {units.map((u) => (
@@ -69,11 +97,29 @@ function ScenarioFields({
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor={`qty${suffix}`}>Qtd</Label>
-          <Input id={`qty${suffix}`} name={`purchaseQty${suffix}`} type="number" step="any" min="0" required={suffix === "A"} />
+          <Input
+            id={`qty${suffix}`}
+            name={`purchaseQty${suffix}`}
+            type="number"
+            step="any"
+            min="0"
+            required={suffix === "A"}
+            value={qty}
+            onChange={(e) => setQty(e.target.value)}
+          />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor={`price${suffix}`}>Preço un.</Label>
-          <Input id={`price${suffix}`} name={`unitPrice${suffix}`} type="number" step="any" min="0" required={suffix === "A"} />
+          <Label htmlFor={`total${suffix}`}>Preço total (R$)</Label>
+          <Input
+            id={`total${suffix}`}
+            name={`productTotal${suffix}`}
+            type="number"
+            step="any"
+            min="0"
+            required={suffix === "A"}
+            value={total}
+            onChange={(e) => setTotal(e.target.value)}
+          />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor={`freight${suffix}`}>Frete total (R$)</Label>
@@ -88,6 +134,14 @@ function ScenarioFields({
           />
         </div>
       </div>
+      {preview && (
+        <p className="text-xs text-muted-foreground">
+          Total {brl(preview.grandTotal, 2)} • efetivo{" "}
+          <span className="font-medium text-foreground">
+            {brl(preview.costPerBase)}/{preview.baseUnit}
+          </span>
+        </p>
+      )}
     </div>
   );
 }
