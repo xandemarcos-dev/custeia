@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -25,6 +26,16 @@ export async function updateIngredientAction(
   if (!name) return { error: "Informe o nome do insumo." };
   if (!categoryId || !baseUnitId) return { error: "Selecione categoria e unidade base." };
 
+  const workspaceId = await requireWorkspaceId();
+  const owned = await prisma.ingredient.findFirst({ where: { id, workspaceId }, select: { id: true } });
+  if (!owned) return { error: "Insumo não encontrado." };
+
+  const ownedCategory = await prisma.category.findFirst({ where: { id: categoryId, workspaceId }, select: { id: true } });
+  if (!ownedCategory) return { error: "Categoria inválida." };
+
+  const ownedUnit = await prisma.unit.findFirst({ where: { id: baseUnitId, workspaceId }, select: { id: true } });
+  if (!ownedUnit) return { error: "Unidade base inválida." };
+
   // Note: stockQty e avgCost NÃO são editáveis aqui (regra de ouro).
   await prisma.ingredient.update({
     where: { id },
@@ -47,6 +58,10 @@ export async function deleteIngredientAction(formData: FormData): Promise<void> 
 
   const id = String(formData.get("id") ?? "");
   if (!id) throw new Error("Insumo inválido.");
+
+  const workspaceId = await requireWorkspaceId();
+  const owned = await prisma.ingredient.findFirst({ where: { id, workspaceId }, select: { id: true } });
+  if (!owned) throw new Error("Insumo não encontrado.");
 
   // Trava de integridade: só exclui se não houver histórico/uso.
   const [entries, exits, usedInRecipes] = await Promise.all([

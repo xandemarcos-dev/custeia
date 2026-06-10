@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { formatBRL } from "@/lib/format";
 import { sumIngredientCost } from "@/services/recipeCost";
 import { computeMargin } from "@/services/margin";
@@ -17,8 +18,9 @@ import { Badge } from "@/components/ui/badge";
 export const dynamic = "force-dynamic";
 
 export default async function MargemPage() {
+  const workspaceId = await requireWorkspaceId();
   const recipes = await prisma.recipe.findMany({
-    where: { isActive: true },
+    where: { isActive: true, workspaceId },
     include: {
       category: true,
       groups: { include: { ingredients: { include: { ingredient: true } } } },

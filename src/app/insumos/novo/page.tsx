@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { NewIngredientForm } from "./NewIngredientForm";
@@ -6,10 +7,11 @@ import { NewIngredientForm } from "./NewIngredientForm";
 export const dynamic = "force-dynamic";
 
 export default async function NovoInsumoPage() {
+  const workspaceId = await requireWorkspaceId();
   const [categories, units] = await Promise.all([
-    prisma.category.findMany({ orderBy: { name: "asc" } }),
+    prisma.category.findMany({ where: { workspaceId }, orderBy: { name: "asc" } }),
     // Unidade base do insumo deve ser ATÔMICA (fator de conversão = 1): gr, ml, unidade.
-    prisma.unit.findMany({ where: { toBaseFactor: 1 }, orderBy: { name: "asc" } }),
+    prisma.unit.findMany({ where: { workspaceId, toBaseFactor: 1 }, orderBy: { name: "asc" } }),
   ]);
 
   return (

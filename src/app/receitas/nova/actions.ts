@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -44,15 +45,23 @@ export async function createRecipeAction(
     return { error: "Adicione ao menos um insumo com quantidade maior que zero." };
   }
 
-  const category = await prisma.productCategory.findUniqueOrThrow({
-    where: { id: categoryId },
-    select: { workspaceId: true },
+  const workspaceId = await requireWorkspaceId();
+  const category = await prisma.productCategory.findFirst({ where: { id: categoryId, workspaceId }, select: { id: true } });
+  if (!category) return { error: "Categoria inválida." };
+
+  // Garante que todos os insumos pertencem ao workspace (evita referência cruzada).
+  const uniqueIngredientIds = [...new Set(items.map((it) => it.ingredientId))];
+  const ownedIngredients = await prisma.ingredient.count({
+    where: { workspaceId, id: { in: uniqueIngredientIds } },
   });
+  if (ownedIngredients !== uniqueIngredientIds.length) {
+    return { error: "Um ou mais insumos são inválidos." };
+  }
 
   // Cria receita + grupo + ingredientes numa só operação (escrita aninhada).
   await prisma.recipe.create({
     data: {
-      workspaceId: category.workspaceId,
+      workspaceId,
       name,
       categoryId,
       yieldQty,

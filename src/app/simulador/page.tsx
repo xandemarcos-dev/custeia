@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { dimensionOf } from "@/lib/dimension";
@@ -7,9 +8,10 @@ import { SimuladorForm } from "./SimuladorForm";
 export const dynamic = "force-dynamic";
 
 export default async function SimuladorPage() {
+  const workspaceId = await requireWorkspaceId();
   const [ingredients, units] = await Promise.all([
-    prisma.ingredient.findMany({ orderBy: { name: "asc" }, include: { baseUnit: true } }),
-    prisma.unit.findMany({ orderBy: { name: "asc" } }),
+    prisma.ingredient.findMany({ where: { workspaceId }, orderBy: { name: "asc" }, include: { baseUnit: true } }),
+    prisma.unit.findMany({ where: { workspaceId }, orderBy: { name: "asc" } }),
   ]);
 
   const ingredientOpts = ingredients.map((i) => ({
@@ -21,6 +23,8 @@ export default async function SimuladorPage() {
     id: u.id,
     name: u.name,
     dimension: dimensionOf(u.baseUnit),
+    baseUnit: u.baseUnit,
+    toBaseFactor: Number(u.toBaseFactor),
   }));
 
   return (

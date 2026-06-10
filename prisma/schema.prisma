@@ -65,6 +65,7 @@ model Workspace {
 
 model User {
   id          String   @id @default(uuid())
+  clerkId     String   @unique @map("clerk_id")
   email       String   @db.VarChar(255)
   name        String   @db.VarChar(100)
   role        Role     @default(owner)

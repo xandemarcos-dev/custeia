@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EditRecipeForm } from "./EditRecipeForm";
@@ -9,14 +10,15 @@ export const dynamic = "force-dynamic";
 
 export default async function EditarReceitaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const workspaceId = await requireWorkspaceId();
 
   const [recipe, categories, ingredientsRaw] = await Promise.all([
-    prisma.recipe.findUnique({
-      where: { id },
+    prisma.recipe.findFirst({
+      where: { id, workspaceId },
       include: { groups: { include: { ingredients: true } } },
     }),
-    prisma.productCategory.findMany({ orderBy: { name: "asc" } }),
-    prisma.ingredient.findMany({ include: { baseUnit: true }, orderBy: { name: "asc" } }),
+    prisma.productCategory.findMany({ where: { workspaceId }, orderBy: { name: "asc" } }),
+    prisma.ingredient.findMany({ where: { workspaceId }, include: { baseUnit: true }, orderBy: { name: "asc" } }),
   ]);
 
   if (!recipe) notFound();

@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { auth } from "@clerk/nextjs/server";
 import { simulatePurchase } from "@/services/simulatePurchase";
 import { sumIngredientCost } from "@/services/recipeCost";
@@ -41,9 +42,10 @@ async function scenario(
   purchaseUnitId: string,
   purchaseQty: number,
   unitPrice: number,
-  freightTotal: number
+  freightTotal: number,
+  workspaceId: string
 ): Promise<ScenarioResult> {
-  const unit = await prisma.unit.findUniqueOrThrow({ where: { id: purchaseUnitId } });
+  const unit = await prisma.unit.findFirstOrThrow({ where: { id: purchaseUnitId, workspaceId } });
   // Consistência de dimensão (R6).
   const buyDim = dimensionOf(unit.baseUnit);
   if (ingDim !== buyDim) {
@@ -77,26 +79,30 @@ export async function simulateAction(_prev: SimState, formData: FormData): Promi
   if (!isAuthenticated) return { error: "Você precisa estar logado." };
 
   const ingredientId = String(formData.get("ingredientId") ?? "");
-  // Fornecedor A (obrigatório)
+  // Fornecedor A (obrigatório). O usuário informa o TOTAL pago pelos itens;
+  // o preço unitário é derivado (total ÷ qtd).
   const unitA = String(formData.get("purchaseUnitIdA") ?? "");
   const qtyA = Number(formData.get("purchaseQtyA"));
-  const priceA = Number(formData.get("unitPriceA"));
+  const totalA = Number(formData.get("productTotalA"));
   const freightA = Number(formData.get("freightTotalA") ?? 0);
   // Fornecedor B (opcional)
   const unitB = String(formData.get("purchaseUnitIdB") ?? "");
   const qtyB = Number(formData.get("purchaseQtyB"));
-  const priceB = Number(formData.get("unitPriceB"));
+  const totalB = Number(formData.get("productTotalB"));
   const freightB = Number(formData.get("freightTotalB") ?? 0);
 
   if (!ingredientId) return { error: "Selecione o insumo." };
   if (!unitA) return { error: "Selecione a unidade do Fornecedor A." };
   if (!(qtyA > 0)) return { error: "A quantidade do Fornecedor A deve ser maior que zero." };
-  if (!(priceA >= 0)) return { error: "O preço do Fornecedor A não pode ser negativo." };
+  if (!(totalA >= 0)) return { error: "O preço total do Fornecedor A não pode ser negativo." };
 
-  const hasB = Boolean(unitB) && qtyB > 0 && priceB >= 0;
+  const hasB = Boolean(unitB) && qtyB > 0 && totalB >= 0;
+  const priceA = totalA / qtyA;
+  const priceB = qtyB > 0 ? totalB / qtyB : 0;
 
-  const ingredient = await prisma.ingredient.findUniqueOrThrow({
-    where: { id: ingredientId },
+  const workspaceId = await requireWorkspaceId();
+  const ingredient = await prisma.ingredient.findFirstOrThrow({
+    where: { id: ingredientId, workspaceId },
     include: { baseUnit: true },
   });
   const currentAvg = Number(ingredient.avgCost);
@@ -106,8 +112,8 @@ export async function simulateAction(_prev: SimState, formData: FormData): Promi
   let a: ScenarioResult;
   let b: ScenarioResult | null;
   try {
-    a = await scenario(ingForSim, ingDim, unitA, qtyA, priceA, freightA);
-    b = hasB ? await scenario(ingForSim, ingDim, unitB, qtyB, priceB, freightB) : null;
+    a = await scenario(ingForSim, ingDim, unitA, qtyA, priceA, freightA, workspaceId);
+    b = hasB ? await scenario(ingForSim, ingDim, unitB, qtyB, priceB, freightB, workspaceId) : null;
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Erro ao simular." };
   }
@@ -128,7 +134,7 @@ export async function simulateAction(_prev: SimState, formData: FormData): Promi
 
   // Impacto na margem dos produtos, usando o custo do cenário vencedor (ou A).
   const recipes = await prisma.recipe.findMany({
-    where: { isActive: true, groups: { some: { ingredients: { some: { ingredientId } } } } },
+    where: { workspaceId, isActive: true, groups: { some: { ingredients: { some: { ingredientId } } } } },
     include: { groups: { include: { ingredients: { include: { ingredient: true } } } } },
   });
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,9 +16,10 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function ReposicaoPage() {
+  const workspaceId = await requireWorkspaceId();
   // Só faz sentido alertar quem tem um mínimo definido (> 0).
   const ingredients = await prisma.ingredient.findMany({
-    where: { minStockQty: { gt: 0 } },
+    where: { workspaceId, minStockQty: { gt: 0 } },
     include: { category: true, baseUnit: true },
     orderBy: { name: "asc" },
   });
@@ -29,7 +31,7 @@ export default async function ReposicaoPage() {
       const min = Number(i.minStockQty);
       return { i, stock, min, gap: min - stock };
     })
-    .filter((x) => x.gap >= 0) // estoque <= mínimo
+    .filter((x) => x.gap > 0) // estoque ABAIXO do mínimo (ao atingir o mínimo, sai da lista)
     .sort((a, b) => b.gap - a.gap); // mais críticos primeiro
 
   return (
@@ -38,7 +40,7 @@ export default async function ReposicaoPage() {
       <main className="mx-auto w-full max-w-4xl px-6 py-10">
         <h1 className="text-2xl font-semibold tracking-tight">Reposição</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Insumos no ou abaixo do estoque mínimo — hora de comprar.
+          Insumos abaixo do estoque mínimo — hora de comprar.
         </p>
 
         <Card className="mt-6">

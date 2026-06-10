@@ -30,7 +30,22 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <ClerkProvider>
+        <ClerkProvider
+          localization={{
+            signIn: {
+              start: {
+                title: "Entrar no BatchFlow",
+                subtitle: "Bem-vindo de volta! Faça login para continuar.",
+              },
+            },
+            signUp: {
+              start: {
+                title: "Criar conta no BatchFlow",
+                subtitle: "Preencha os dados para começar.",
+              },
+            },
+          }}
+        >
           {children}
           <Show when="signed-in">
             <CalculatorFab />

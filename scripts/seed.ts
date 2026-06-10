@@ -21,13 +21,13 @@ async function main() {
   });
 
   const gr = await prisma.unit.create({
-    data: { workspaceId: ws.id, name: "gr", baseUnit: "gr", toBaseFactor: 1 },
+    data: { workspaceId: ws.id, name: "g", baseUnit: "g", toBaseFactor: 1 },
   });
   const kg = await prisma.unit.create({
-    data: { workspaceId: ws.id, name: "kg", baseUnit: "gr", toBaseFactor: 1000 },
+    data: { workspaceId: ws.id, name: "kg", baseUnit: "g", toBaseFactor: 1000 },
   });
   const caixaLC = await prisma.unit.create({
-    data: { workspaceId: ws.id, name: "caixa 395g", baseUnit: "gr", toBaseFactor: 395 },
+    data: { workspaceId: ws.id, name: "caixa 395g", baseUnit: "g", toBaseFactor: 395 },
   });
 
   const leiteCond = await prisma.ingredient.create({

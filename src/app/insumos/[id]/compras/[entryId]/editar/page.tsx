@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EditEntryForm } from "./EditEntryForm";
@@ -12,11 +13,19 @@ export default async function EditarCompraPage({
   params: Promise<{ id: string; entryId: string }>;
 }) {
   const { id, entryId } = await params;
+  const workspaceId = await requireWorkspaceId();
   const [entry, units] = await Promise.all([
-    prisma.ingredientEntry.findUnique({ where: { id: entryId } }),
-    prisma.unit.findMany({ orderBy: { name: "asc" } }),
+    prisma.ingredientEntry.findFirst({ where: { id: entryId, workspaceId } }),
+    prisma.unit.findMany({ where: { workspaceId }, orderBy: { name: "asc" } }),
   ]);
   if (!entry || entry.ingredientId !== id) notFound();
+
+  const unitOpts = units.map((u) => ({
+    id: u.id,
+    name: u.name,
+    baseUnit: u.baseUnit,
+    toBaseFactor: Number(u.toBaseFactor),
+  }));
 
   return (
     <>
@@ -40,7 +49,7 @@ export default async function EditarCompraPage({
                 freightTotal: Number(entry.freightTotal),
                 entryDate: entry.entryDate.toISOString().slice(0, 10),
               }}
-              units={units}
+              units={unitOpts}
             />
           </CardContent>
         </Card>

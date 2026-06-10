@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { requireWorkspaceId } from "@/lib/workspace";
 import { auth } from "@clerk/nextjs/server";
 import { computeEntryAmounts } from "@/services/entryMath";
 import { recomputeIngredient } from "@/services/recomputeIngredient";
@@ -14,6 +15,10 @@ export async function deleteEntryAction(formData: FormData): Promise<void> {
   const entryId = String(formData.get("entryId") ?? "");
   const ingredientId = String(formData.get("ingredientId") ?? "");
   if (!entryId || !ingredientId) throw new Error("Dados inválidos.");
+
+  const workspaceId = await requireWorkspaceId();
+  const entry = await prisma.ingredientEntry.findFirst({ where: { id: entryId, workspaceId }, select: { id: true } });
+  if (!entry) throw new Error("Compra não encontrada.");
 
   await prisma.ingredientEntry.delete({ where: { id: entryId } });
   await recomputeIngredient(ingredientId); // reprocessa o histórico restante
@@ -37,17 +42,25 @@ export async function updateEntryAction(
   const ingredientId = String(formData.get("ingredientId") ?? "");
   const purchaseUnitId = String(formData.get("purchaseUnitId") ?? "");
   const purchaseQty = Number(formData.get("purchaseQty"));
-  const unitPrice = Number(formData.get("unitPrice"));
+  // Total pago pelos itens (sem frete); o preço unitário é derivado.
+  const productTotal = Number(formData.get("productTotal"));
   const freightTotal = Number(formData.get("freightTotal") ?? 0);
   const entryDateStr = String(formData.get("entryDate") ?? "");
 
   if (!entryId || !ingredientId || !purchaseUnitId) return { error: "Dados inválidos." };
   if (!(purchaseQty > 0)) return { error: "A quantidade deve ser maior que zero." };
-  if (!(unitPrice >= 0)) return { error: "O preço não pode ser negativo." };
+  if (!(productTotal >= 0)) return { error: "O preço total não pode ser negativo." };
   if (!(freightTotal >= 0)) return { error: "O frete não pode ser negativo." };
   if (!entryDateStr) return { error: "Informe a data." };
 
-  const unit = await prisma.unit.findUniqueOrThrow({ where: { id: purchaseUnitId } });
+  const unitPrice = productTotal / purchaseQty;
+
+  const workspaceId = await requireWorkspaceId();
+  const entry = await prisma.ingredientEntry.findFirst({ where: { id: entryId, workspaceId }, select: { id: true } });
+  if (!entry) return { error: "Compra não encontrada." };
+
+  const unit = await prisma.unit.findFirst({ where: { id: purchaseUnitId, workspaceId } });
+  if (!unit) return { error: "Unidade inválida." };
   const amounts = computeEntryAmounts({
     purchaseQty,
     toBaseFactor: Number(unit.toBaseFactor),
