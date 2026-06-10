@@ -8,10 +8,10 @@ import { prisma } from "@/lib/prisma";
  * Derivadas comuns: kg, L, dúzia.
  */
 const DEFAULTS: { name: string; baseUnit: string; toBaseFactor: number }[] = [
-  { name: "gr", baseUnit: "gr", toBaseFactor: 1 },
+  { name: "g", baseUnit: "g", toBaseFactor: 1 },
   { name: "ml", baseUnit: "ml", toBaseFactor: 1 },
   { name: "un", baseUnit: "un", toBaseFactor: 1 },
-  { name: "kg", baseUnit: "gr", toBaseFactor: 1000 },
+  { name: "kg", baseUnit: "g", toBaseFactor: 1000 },
   { name: "L", baseUnit: "ml", toBaseFactor: 1000 },
   { name: "dúzia", baseUnit: "un", toBaseFactor: 12 },
 ];

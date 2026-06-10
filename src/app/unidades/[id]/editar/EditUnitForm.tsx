@@ -49,7 +49,7 @@ export function EditUnitForm({
           disabled={inUse}
           className={selectCls}
         >
-          <option value="gr">gr — gramas</option>
+          <option value="g">g — gramas</option>
           <option value="ml">ml — mililitros</option>
           <option value="un">un — unidades</option>
         </select>
