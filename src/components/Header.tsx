@@ -20,7 +20,7 @@ async function getRestockCount(): Promise<number> {
       where: { workspaceId, minStockQty: { gt: 0 } },
       select: { stockQty: true, minStockQty: true },
     });
-    return ings.filter((i) => Number(i.stockQty) <= Number(i.minStockQty)).length;
+    return ings.filter((i) => Number(i.stockQty) < Number(i.minStockQty)).length;
   } catch {
     return 0;
   }
