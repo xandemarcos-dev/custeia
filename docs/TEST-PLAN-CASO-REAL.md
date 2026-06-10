@@ -79,7 +79,11 @@ Ingredientes (em gramas):
 
 ## Etapa 4 — Receita 2: Tradicional ao Leite (testa GRUPOS)
 
-Config: rendimento **32** porções (14 g) · venda **R$ 2,00** · embalagem **R$ 5,12** · fixos **30%**.
+Config: rendimento **32** porções (14 g) · venda **R$ 2,00** · embalagem **R$ 5,12** · fixos **30%** · margem alvo **50%**.
+
+> Margem alvo de 50% é proposital: a margem real (~41%) deve ficar ABAIXO do alvo
+> e aparecer em VERMELHO — este é o produto que a Day citou na entrevista como
+> "vendido abaixo do ideal". Se o sistema acusar, provou o valor central.
 
 Grupo "Massa":
 
