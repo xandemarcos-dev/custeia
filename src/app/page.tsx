@@ -7,8 +7,8 @@ import { computeMargin } from "@/services/margin";
 import { computePriceIncreases, type EntryForAlert } from "@/services/priceAlerts";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ShoppingCart, Factory, PlusCircle, Calculator, ArrowRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -89,10 +89,10 @@ export default async function Home() {
   ];
 
   const acoes = [
-    { label: "Nova compra", href: "/entradas/nova" },
-    { label: "Registrar produção", href: "/producao/nova" },
-    { label: "Novo produto", href: "/receitas/nova" },
-    { label: "Simular compra", href: "/simulador" },
+    { label: "Nova compra", href: "/entradas/nova", Icon: ShoppingCart },
+    { label: "Registrar produção", href: "/producao/nova", Icon: Factory },
+    { label: "Novo produto", href: "/receitas/nova", Icon: PlusCircle },
+    { label: "Simular compra", href: "/simulador", Icon: Calculator },
   ];
 
   return (
@@ -125,17 +125,17 @@ export default async function Home() {
           ))}
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-          {acoes.map((a) => (
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {acoes.map(({ label, href, Icon }) => (
             <Link
-              key={a.href}
-              href={a.href}
-              className={buttonVariants({
-                variant: "outline",
-                className: "w-full sm:w-auto",
-              })}
+              key={href}
+              href={href}
+              className="group flex items-center gap-3 rounded-xl bg-card p-3.5 ring-1 ring-foreground/10 transition-all hover:-translate-y-0.5 hover:ring-[#2bc4b0]/50 active:translate-y-0"
             >
-              {a.label}
+              <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-[#2bc4b0]/10 text-[#0f6e56] transition-colors group-hover:bg-[#2bc4b0]/20">
+                <Icon className="size-[18px]" />
+              </span>
+              <span className="text-sm font-medium leading-tight">{label}</span>
             </Link>
           ))}
         </div>
@@ -214,8 +214,12 @@ export default async function Home() {
               </ul>
               {abaixoDaMeta.length > 5 && (
                 <p className="mt-3 text-sm">
-                  <Link href="/margem" className="text-muted-foreground hover:underline">
-                    Ver todos os {abaixoDaMeta.length} no Painel de Margem →
+                  <Link
+                    href="/margem"
+                    className="inline-flex items-center gap-1 font-medium text-[#0f6e56] hover:underline"
+                  >
+                    Ver todos os {abaixoDaMeta.length} no Painel de Margem
+                    <ArrowRight className="size-3.5" />
                   </Link>
                 </p>
               )}
