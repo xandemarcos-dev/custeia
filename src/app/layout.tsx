@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ClerkProvider, Show } from "@clerk/nextjs";
-import { CalculatorFab } from "@/components/CalculatorFab";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -63,9 +62,6 @@ export default function RootLayout({
           }}
         >
           {children}
-          <Show when="signed-in">
-            <CalculatorFab />
-          </Show>
         </ClerkProvider>
       </body>
     </html>

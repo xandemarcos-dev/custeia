@@ -58,7 +58,7 @@ export function EditIngredientForm({
         <Input id="brand" name="brand" defaultValue={ingredient.brand} />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="categoryId">Categoria</Label>
           <select id="categoryId" name="categoryId" required defaultValue={ingredient.categoryId} className={selectCls}>

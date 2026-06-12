@@ -17,7 +17,7 @@ export default async function NovoInsumoPage() {
   return (
     <>
       <Header />
-      <main className="mx-auto w-full max-w-xl px-6 py-10">
+      <main className="mx-auto w-full max-w-xl px-4 py-6 sm:px-6 sm:py-10">
         <Card>
           <CardHeader>
             <CardTitle>Novo insumo</CardTitle>

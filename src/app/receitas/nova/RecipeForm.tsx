@@ -51,7 +51,7 @@ export function RecipeForm({
         </select>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="yieldQty">Rende (porções)</Label>
           <Input id="yieldQty" name="yieldQty" type="number" step="any" min="0" required />
@@ -62,7 +62,7 @@ export function RecipeForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="space-y-1.5">
           <Label htmlFor="targetMarginPct">Margem alvo (%)</Label>
           <Input id="targetMarginPct" name="targetMarginPct" type="number" step="any" min="0" max="99" defaultValue="60" />
