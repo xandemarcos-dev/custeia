@@ -12,14 +12,46 @@ describe("computeMargin — margem por porção", () => {
       targetMarginPct: 60,
     });
 
-    // insumo/porção 0,524 + embalagem/porção 0,20 + fixo 0,1572 = 0,8812
-    expect(r.unitCost).toBeCloseTo(0.8812, 4);
-    // (3,50 - 0,8812)/3,50 × 100 ≈ 74,82%
-    expect(r.marginPct).toBeCloseTo(74.82, 1);
-    expect(r.marginGap).toBeCloseTo(14.82, 1); // acima da meta
+    // (insumos 15,72 + embalagem 6) × 1,30 = 28,236 ÷ 30 = 0,9412
+    expect(r.unitCost).toBeCloseTo(0.9412, 4);
+    // (3,50 - 0,9412)/3,50 × 100 ≈ 73,11%
+    expect(r.marginPct).toBeCloseTo(73.11, 1);
+    expect(r.marginGap).toBeCloseTo(13.11, 1); // acima da meta
     expect(r.belowTarget).toBe(false);
-    // 0,8812 / (1 - 0,60) = 2,203
-    expect(r.suggestedPrice).toBeCloseTo(2.203, 2);
+    // 0,9412 / (1 - 0,60) = 2,353
+    expect(r.suggestedPrice).toBeCloseTo(2.353, 2);
+  });
+
+  it("bate com o gabarito da planilha da Day — Brigadeiro Ninho", () => {
+    const r = computeMargin({
+      ingredientCostBatch: 11.075,
+      yieldQty: 28,
+      unitPrice: 2,
+      packagingCost: 4.48,
+      fixedCostPct: 30,
+      targetMarginPct: 50,
+    });
+    // (11,075 + 4,48) × 1,30 = 20,2215 ÷ 28 = 0,7222
+    expect(r.unitCost).toBeCloseTo(0.7222, 4);
+    expect(r.marginPct).toBeCloseTo(63.9, 1);
+    expect(r.belowTarget).toBe(false);
+  });
+
+  it("bate com o gabarito da planilha da Day — Tradicional ao Leite", () => {
+    const r = computeMargin({
+      ingredientCostBatch: 23.804,
+      yieldQty: 32,
+      unitPrice: 2,
+      packagingCost: 5.12,
+      fixedCostPct: 30,
+      targetMarginPct: 50,
+    });
+    // (23,804 + 5,12) × 1,30 = 37,6012 ÷ 32 = 1,1750
+    expect(r.unitCost).toBeCloseTo(1.175, 3);
+    expect(r.marginPct).toBeCloseTo(41.2, 1);
+    expect(r.belowTarget).toBe(true);
+    // 1,1750 / 0,5 = 2,35
+    expect(r.suggestedPrice).toBeCloseTo(2.35, 2);
   });
 
   it("acende o alerta quando a margem fica abaixo da meta", () => {

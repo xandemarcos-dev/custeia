@@ -7,7 +7,7 @@ export interface ComputeMarginInput {
   unitPrice: number;
   /** Custo de embalagem por lote. */
   packagingCost: number;
-  /** % de custos fixos sobre o custo de insumos. */
+  /** % de custos fixos sobre insumos + embalagem. */
   fixedCostPct: number;
   /** Margem alvo (%). */
   targetMarginPct: number;
@@ -32,11 +32,9 @@ export function computeMargin(input: ComputeMarginInput): ComputeMarginResult {
   if (yieldQty <= 0) throw new Error("O rendimento (yieldQty) deve ser maior que zero.");
   if (unitPrice <= 0) throw new Error("O preço de venda deve ser maior que zero.");
 
-  // Tudo por porção (mesma unidade do preço de venda).
-  const ingredientPerPortion = ingredientCostBatch / yieldQty;
-  const packagingPerPortion = packagingCost / yieldQty;
-  const fixedPerPortion = ingredientPerPortion * (fixedCostPct / 100);
-  const unitCost = ingredientPerPortion + packagingPerPortion + fixedPerPortion;
+  // Como na planilha da Day: fixos incidem sobre insumos + embalagem.
+  const batchCost = (ingredientCostBatch + packagingCost) * (1 + fixedCostPct / 100);
+  const unitCost = batchCost / yieldQty;
 
   const marginPct = ((unitPrice - unitCost) / unitPrice) * 100;
   const marginGap = marginPct - targetMarginPct;
