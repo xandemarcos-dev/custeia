@@ -15,10 +15,9 @@ export async function createEntryAction(formData: FormData) {
   const ingredientId = String(formData.get("ingredientId") ?? "");
   const purchaseUnitId = String(formData.get("purchaseUnitId") ?? "");
   const purchaseQty = Number(formData.get("purchaseQty"));
-  // Agora o usuário informa o TOTAL pago pelos itens (sem frete);
-  // o preço unitário é derivado para a trilha de auditoria.
   const productTotal = Number(formData.get("productTotal"));
   const freightTotal = Number(formData.get("freightTotal") ?? 0);
+  const supplierName = String(formData.get("supplierName") ?? "").trim();
 
   // Validação mínima (a ponte também valida, mas erramos cedo aqui).
   if (!ingredientId || !purchaseUnitId) {
@@ -33,10 +32,26 @@ export async function createEntryAction(formData: FormData) {
   const ingredient = await prisma.ingredient.findFirst({ where: { id: ingredientId, workspaceId }, select: { workspaceId: true } });
   if (!ingredient) throw new Error("Insumo inválido.");
 
-  // Chama a PONTE — a mesma regra de negócio do Passo 4 e do seed.
+  // Resolve fornecedor: reutiliza se já existe, cria se for nome novo.
+  let supplierId: string | null = null;
+  if (supplierName) {
+    const existing = await prisma.supplier.findFirst({
+      where: { workspaceId, name: { equals: supplierName, mode: "insensitive" } },
+    });
+    if (existing) {
+      supplierId = existing.id;
+    } else {
+      const created = await prisma.supplier.create({
+        data: { workspaceId, name: supplierName },
+      });
+      supplierId = created.id;
+    }
+  }
+
   await registerIngredientEntry({
     workspaceId,
     ingredientId,
+    supplierId,
     entryDate: new Date(),
     purchaseUnitId,
     purchaseQty,

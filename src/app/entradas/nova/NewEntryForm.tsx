@@ -9,6 +9,7 @@ import type { Dimension } from "@/lib/dimension";
 import { dimensionLabel } from "@/lib/dimension";
 
 type IngredientOpt = { id: string; name: string; dimension: Dimension };
+type SupplierOpt = string; // só o nome — cria automaticamente se for novo
 type UnitOpt = {
   id: string;
   name: string;
@@ -31,9 +32,11 @@ const brl = (v: number, d = 4) =>
 export function NewEntryForm({
   ingredients,
   units,
+  suppliers,
 }: {
   ingredients: IngredientOpt[];
   units: UnitOpt[];
+  suppliers: SupplierOpt[];
 }) {
   const [ingredientId, setIngredientId] = useState("");
   const [purchaseUnitId, setPurchaseUnitId] = useState("");
@@ -169,6 +172,22 @@ export function NewEntryForm({
           </span>
         </div>
       )}
+
+      <div className="space-y-1.5">
+        <Label htmlFor="supplierName">Fornecedor (opcional)</Label>
+        <Input
+          id="supplierName"
+          name="supplierName"
+          list="suppliers-list"
+          placeholder="Ex: Atacado Bom Preço"
+          autoComplete="off"
+        />
+        <datalist id="suppliers-list">
+          {suppliers.map((s) => (
+            <option key={s} value={s} />
+          ))}
+        </datalist>
+      </div>
 
       <Button type="submit" className="w-full">Registrar compra</Button>
     </form>

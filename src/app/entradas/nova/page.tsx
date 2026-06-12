@@ -9,13 +9,14 @@ export const dynamic = "force-dynamic";
 
 export default async function NovaEntradaPage() {
   const workspaceId = await requireWorkspaceId();
-  const [ingredients, units] = await Promise.all([
+  const [ingredients, units, suppliers] = await Promise.all([
     prisma.ingredient.findMany({
       where: { workspaceId },
       orderBy: { name: "asc" },
       include: { baseUnit: true },
     }),
     prisma.unit.findMany({ where: { workspaceId }, orderBy: { name: "asc" } }),
+    prisma.supplier.findMany({ where: { workspaceId }, orderBy: { name: "asc" } }),
   ]);
 
   const ingredientOpts = ingredients.map((i) => ({
@@ -43,7 +44,11 @@ export default async function NovaEntradaPage() {
             </p>
           </CardHeader>
           <CardContent>
-            <NewEntryForm ingredients={ingredientOpts} units={unitOpts} />
+            <NewEntryForm
+              ingredients={ingredientOpts}
+              units={unitOpts}
+              suppliers={suppliers.map((s) => s.name)}
+            />
           </CardContent>
         </Card>
       </main>

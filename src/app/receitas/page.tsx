@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
 import { formatBRL } from "@/lib/format";
 import { sumIngredientCost } from "@/services/recipeCost";
+import { computeMargin } from "@/services/margin";
 import { Header } from "@/components/Header";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -55,6 +56,8 @@ export default async function ReceitasPage() {
                   <TableHead className="text-right">Custo do lote</TableHead>
                   <TableHead className="text-right">Custo / porção</TableHead>
                   <TableHead className="text-right">Preço venda</TableHead>
+                  <TableHead className="text-right">Preço/cento</TableHead>
+                  <TableHead className="text-right">Preço sugerido</TableHead>
                   <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -68,6 +71,18 @@ export default async function ReceitasPage() {
                   );
                   const custoLote = sumIngredientCost(items);
                   const custoPorcao = custoLote / Number(r.yieldQty);
+                  const unitPrice = Number(r.unitPrice);
+                  const margem =
+                    unitPrice > 0 && Number(r.yieldQty) > 0
+                      ? computeMargin({
+                          ingredientCostBatch: custoLote,
+                          yieldQty: Number(r.yieldQty),
+                          unitPrice,
+                          packagingCost: Number(r.packagingCost),
+                          fixedCostPct: Number(r.fixedCostPct),
+                          targetMarginPct: Number(r.targetMarginPct),
+                        })
+                      : null;
 
                   return (
                     <TableRow key={r.id}>
@@ -83,7 +98,19 @@ export default async function ReceitasPage() {
                         {formatBRL(custoPorcao, 2)}
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
-                        {formatBRL(Number(r.unitPrice), 2)}
+                        {formatBRL(unitPrice, 2)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums text-muted-foreground">
+                        {formatBRL(unitPrice * 100, 2)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {margem?.belowTarget ? (
+                          <span className="font-medium text-destructive">
+                            {formatBRL(margem.suggestedPrice, 2)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <Link

@@ -8,37 +8,55 @@ planilhas reais do André (`Estoque 2026.xlsx`, `FT.xlsx`, `Pedidos 2026.xlsx`,
 
 ## Roadmap (ordem de execução)
 
-### 1. ✅ Validar a matemática com o caso real — EM ANDAMENTO
-Rodar `TEST-PLAN-CASO-REAL.md` (Brigadeiro Ninho + Tradicional ao Leite) e
-conferir contra o gabarito das planilhas. Pré-requisito de tudo abaixo.
+### 1. ✅ Validar a matemática com o caso real — CONCLUÍDO (2026-06-10)
+Rodado `TEST-PLAN-CASO-REAL.md` (Brigadeiro Ninho + Tradicional ao Leite):
+todas as etapas batem com o gabarito das planilhas. Correção aplicada em
+`src/services/margin.ts` (fixos incidem sobre insumos + embalagem) com os
+dois produtos da Day como testes de regressão.
 
-### 2. 🔴 Produção com baixa automática de estoque (a peça que falta no ciclo)
-Hoje o estoque só sobe (compras). Criar fluxo "Produzi N lotes da receita X"
-→ baixa automática dos ingredientes da ficha técnica via `IngredientExit`
-(`source='production'`, já previsto no schema; falta a UI).
+### 2. ✅ Produção com baixa automática de estoque — CONCLUÍDO (2026-06-11)
+Tela `/producao/nova` cria N `IngredientExit` (`source='production'`) por lote
+numa transação e debita o estoque dos insumos da ficha — sem mexer no
+`avgCost` (regra de ouro: só muda em entrada). Soma o mesmo insumo quando
+aparece em vários grupos (caso La Petite) e bloqueia se faltar estoque.
+Validado com o Brigadeiro Ninho: estoques caíram exatamente 395 / 200 / 20
+/ 50 g e o custo médio ficou intacto.
 **Evidência:** a aba Saídas da planilha foi *abandonada por falta de tempo*
 (entrevista) — controle manual de saída comprovadamente não sobrevive.
 Sem isso, estoque e Reposição viram ficção em semanas.
 
-### 3. 🔴 Importador das planilhas (risco de adoção)
-~300 insumos e ~70 fichas técnicas existentes. Se o onboarding for "redigite
-tudo", a Day e o André desistem. Script de importação: insumos + custo médio
-(aba Estoque/Produtos) e fichas técnicas (FT.xlsx) → banco do workspace.
-Maior alavancagem para o teste real com os dois.
+### 3. ✅ Importador das planilhas — CONCLUÍDO (2026-06-11)
+`scripts/importDay.ts`: lê `Estoque 2026.xlsx` + `FT.xlsx`, importa 174
+insumos (com custo médio correto por g), 82 saldos iniciais e 66 receitas
+com grupos Massa/Cobertura. Idempotente + `--dry-run`. Inclui
+`resetWorkspace.ts` para ciclos de teste. Planilha do André: pendente até
+receber o arquivo — reaproveita ~80% do código, só muda o mapa de colunas.
 
-### 4. 🟠 Preço de venda sugerido (precificação reversa)
+### 4. ✅ Preço de venda sugerido — CONCLUÍDO (2026-06-11)
 Na tela do produto: "para margem alvo de X%, venda a R$ Y". A planilha do
 André já tem a coluna "Valor Venda Sugerido"; a dor nº 1 da entrevista é
 "precificar de forma prática e segura". Substitui a ideia de calculadora
 de domínio — a conta vai onde o usuário está, não num widget.
 
-### 5. 🟡 Venda "por cento"
-Pedidos 2026 precifica por unidade E por cento (ex: R$ 2,00/un = R$ 200/cento).
-Exibir custo/preço por cento ao lado do por unidade nas telas de produto/margem.
+### 5. ✅ Venda "por cento" — CONCLUÍDO (2026-06-11)
+Coluna "Preço/cento" (preço/un × 100) nas telas Produtos e Margem,
+em estilo secundário ao lado do preço por unidade.
 
-### 6. 🟡 Fornecedor na compra
-Schema já tem `Supplier`; planilha de Entradas tem a coluna. Adicionar campo
-opcional de fornecedor na tela de Nova Compra (alimenta comparações futuras).
+### 6. ✅ Fornecedor na compra — CONCLUÍDO (2026-06-11)
+Campo opcional "Fornecedor" na tela de Nova Compra com autocomplete
+(datalist). Cria o `Supplier` automaticamente no primeiro uso — sem tela
+de cadastro separada. Alimenta `supplierId` em `IngredientEntry` para
+comparações futuras.
+
+### 7. 🟢 Manual do sistema (quando o produto estiver pronto)
+Documentar cada módulo e cada funcionalidade para a Day e o André conseguirem
+operar sem suporte. Cobertura mínima: Unidades, Insumos, Compras, Produtos
+(receitas + grupos), Produção, Margem, Simulador, Reposição. Em cada um:
+o que é, quando usar, exemplo concreto da rotina deles, regras invisíveis
+(ex.: a "regra de ouro" do custo médio só mudar em compra). Formato: páginas
+dentro do app (`/ajuda/...`) com prints, não PDF — fica indexável e
+atualizável junto com o código. Fazer **depois** do roadmap fechar para não
+documentar tela que ainda vai mudar.
 
 ---
 

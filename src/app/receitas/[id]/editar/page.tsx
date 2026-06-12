@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
+import { formatBRL } from "@/lib/format";
+import { computeMargin } from "@/services/margin";
+import { sumIngredientCost } from "@/services/recipeCost";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EditRecipeForm } from "./EditRecipeForm";
 import { DeleteRecipeButton } from "./DeleteRecipeButton";
@@ -26,6 +29,22 @@ export default async function EditarReceitaPage({ params }: { params: Promise<{ 
   const items = recipe.groups.flatMap((g) =>
     g.ingredients.map((ri) => ({ ingredientId: ri.ingredientId, qtyInBase: Number(ri.qtyInBase) }))
   );
+  const avgCostById = new Map(ingredientsRaw.map((i) => [i.id, Number(i.avgCost)]));
+  const custoLote = sumIngredientCost(
+    items.map((it) => ({ qtyInBase: it.qtyInBase, avgCost: avgCostById.get(it.ingredientId) ?? 0 }))
+  );
+  const margem =
+    Number(recipe.unitPrice) > 0 && Number(recipe.yieldQty) > 0
+      ? computeMargin({
+          ingredientCostBatch: custoLote,
+          yieldQty: Number(recipe.yieldQty),
+          unitPrice: Number(recipe.unitPrice),
+          packagingCost: Number(recipe.packagingCost),
+          fixedCostPct: Number(recipe.fixedCostPct),
+          targetMarginPct: Number(recipe.targetMarginPct),
+        })
+      : null;
+
   const ingredients = ingredientsRaw.map((i) => ({
     id: i.id,
     name: i.name,
@@ -44,6 +63,26 @@ export default async function EditarReceitaPage({ params }: { params: Promise<{ 
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
+            {margem && (
+              <div
+                className={`rounded-md border px-4 py-3 text-sm ${
+                  margem.belowTarget
+                    ? "border-destructive/30 bg-destructive/10"
+                    : "border-emerald-500/30 bg-emerald-500/10"
+                }`}
+              >
+                <p className="font-medium">
+                  Para a margem alvo de {Number(recipe.targetMarginPct)}%, venda a{" "}
+                  {formatBRL(margem.suggestedPrice, 2)}
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  Hoje: custo {formatBRL(margem.unitCost, 2)}/un · preço{" "}
+                  {formatBRL(Number(recipe.unitPrice), 2)} · margem real{" "}
+                  {margem.marginPct.toFixed(1)}%
+                  {margem.belowTarget ? " — abaixo da meta" : " — acima da meta"}
+                </p>
+              </div>
+            )}
             <EditRecipeForm
               recipe={{
                 id: recipe.id,

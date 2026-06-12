@@ -69,7 +69,8 @@ export default async function MargemPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Produto</TableHead>
-                  <TableHead className="text-right">Preço</TableHead>
+                  <TableHead className="text-right">Preço/un.</TableHead>
+                  <TableHead className="text-right">Preço/cento</TableHead>
                   <TableHead className="text-right">Custo/un.</TableHead>
                   <TableHead className="text-right">Margem</TableHead>
                   <TableHead className="text-right">Meta</TableHead>
@@ -82,6 +83,9 @@ export default async function MargemPage() {
                     <TableCell className="font-medium">{r.name}</TableCell>
                     <TableCell className="text-right tabular-nums">
                       {formatBRL(r.unitPrice, 2)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
+                      {formatBRL(r.unitPrice * 100, 2)}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {formatBRL(r.unitCost, 2)}
