@@ -4,6 +4,7 @@ import { requireWorkspaceId } from "@/lib/workspace";
 import { formatBRL } from "@/lib/format";
 import { sumIngredientCost } from "@/services/recipeCost";
 import { computeMargin } from "@/services/margin";
+import { computePriceIncreases, type EntryForAlert } from "@/services/priceAlerts";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
@@ -14,14 +15,24 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   const workspaceId = await requireWorkspaceId();
 
-  const [recipes, ingredients] = await Promise.all([
+  const [recipes, ingredients, entries] = await Promise.all([
     prisma.recipe.findMany({
       where: { isActive: true, workspaceId },
       include: { groups: { include: { ingredients: { include: { ingredient: true } } } } },
     }),
     prisma.ingredient.findMany({
       where: { workspaceId },
-      select: { stockQty: true, minStockQty: true },
+      select: { stockQty: true, minStockQty: true, avgCost: true },
+    }),
+    prisma.ingredientEntry.findMany({
+      where: { workspaceId },
+      select: {
+        ingredientId: true,
+        entryDate: true,
+        totalCost: true,
+        qtyInBase: true,
+        ingredient: { select: { name: true, baseUnit: { select: { baseUnit: true } } } },
+      },
     }),
   ]);
 
@@ -49,6 +60,21 @@ export default async function Home() {
   const paraRepor = ingredients.filter(
     (i) => Number(i.minStockQty) > 0 && Number(i.stockQty) < Number(i.minStockQty)
   ).length;
+
+  const capitalEstoque = ingredients.reduce(
+    (acc, i) => acc + Number(i.stockQty) * Number(i.avgCost),
+    0
+  );
+
+  const entriesForAlert: EntryForAlert[] = entries.map((e) => ({
+    ingredientId: e.ingredientId,
+    ingredientName: e.ingredient.name,
+    baseUnit: e.ingredient.baseUnit.baseUnit,
+    entryDate: e.entryDate,
+    totalCost: Number(e.totalCost),
+    qtyInBase: Number(e.qtyInBase),
+  }));
+  const priceAlerts = computePriceIncreases(entriesForAlert);
 
   const kpis = [
     {
@@ -83,7 +109,7 @@ export default async function Home() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {kpis.map((k) => (
             <Link key={k.label} href={k.href}>
-              <Card className="transition-colors hover:bg-muted/40">
+              <Card className="transition-all hover:bg-muted/40 hover:ring-foreground/20 active:translate-y-px">
                 <CardContent className="pt-4">
                   <p
                     className={`text-3xl font-semibold tabular-nums ${
@@ -114,8 +140,48 @@ export default async function Home() {
           ))}
         </div>
 
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <Card>
+            <CardContent className="pt-4">
+              <p className="text-sm text-muted-foreground">Capital parado em estoque</p>
+              <p className="mt-1 text-3xl font-semibold tabular-nums">
+                {formatBRL(capitalEstoque, 2)}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Soma do estoque atual pelo custo médio de cada insumo.
+              </p>
+            </CardContent>
+          </Card>
+
+          {priceAlerts.length > 0 && (
+            <Card className="border-destructive/30">
+              <CardContent className="pt-4">
+                <p className="text-sm text-muted-foreground">Insumos que subiram de preço</p>
+                <ul className="mt-2 space-y-1.5">
+                  {priceAlerts.slice(0, 3).map((a) => (
+                    <li
+                      key={a.ingredientId}
+                      className="flex items-center justify-between gap-3 text-sm"
+                    >
+                      <span className="truncate font-medium">{a.name}</span>
+                      <span className="shrink-0 font-medium text-destructive tabular-nums">
+                        +{a.pctIncrease.toFixed(0)}%
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {priceAlerts.length > 3 && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    e mais {priceAlerts.length - 3} na última compra.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
         {abaixoDaMeta.length > 0 && (
-          <Card className="mt-6">
+          <Card className="mt-4">
             <CardHeader>
               <CardTitle className="text-base">Atenção primeiro</CardTitle>
               <p className="text-sm text-muted-foreground">
