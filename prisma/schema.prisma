@@ -234,8 +234,10 @@ model Recipe {
   yieldQty        Decimal @map("yield_qty") @db.Decimal(10, 2)
   unitPrice       Decimal @map("unit_price") @db.Decimal(10, 2)
   targetMarginPct Decimal @default(0) @map("target_margin_pct") @db.Decimal(5, 2)
-  packagingCost   Decimal @default(0) @map("packaging_cost") @db.Decimal(10, 4)
-  fixedCostPct    Decimal @default(0) @map("fixed_cost_pct") @db.Decimal(5, 2)
+  packagingCost   Decimal  @default(0) @map("packaging_cost") @db.Decimal(10, 4)
+  fixedCostPct    Decimal  @default(0) @map("fixed_cost_pct") @db.Decimal(5, 2)
+  /// Volume mensal estimado de venda (un/mês). Opcional — alimenta o ganho/mês.
+  monthlySalesQty Decimal? @map("monthly_sales_qty") @db.Decimal(12, 2)
   notes           String?
   isActive        Boolean @default(true) @map("is_active")
 

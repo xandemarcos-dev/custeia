@@ -93,6 +93,8 @@ export default async function EditarReceitaPage({ params }: { params: Promise<{ 
                 targetMarginPct: Number(recipe.targetMarginPct),
                 packagingCost: Number(recipe.packagingCost),
                 fixedCostPct: Number(recipe.fixedCostPct),
+                monthlySalesQty:
+                  recipe.monthlySalesQty == null ? null : Number(recipe.monthlySalesQty),
                 items,
               }}
               categories={categories}

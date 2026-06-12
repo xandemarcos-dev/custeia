@@ -22,6 +22,8 @@ export async function createRecipeAction(
   const targetMarginPct = Number(formData.get("targetMarginPct"));
   const packagingCost = Number(formData.get("packagingCost"));
   const fixedCostPct = Number(formData.get("fixedCostPct"));
+  const monthlySalesRaw = String(formData.get("monthlySalesQty") ?? "").trim();
+  const monthlySalesQty = monthlySalesRaw === "" ? null : Number(monthlySalesRaw);
 
   // As listas (mesmo name) chegam alinhadas por índice.
   const ingredientIds = formData.getAll("ingredientId").map(String);
@@ -37,6 +39,9 @@ export async function createRecipeAction(
   }
   if (!(packagingCost >= 0)) return { error: "A embalagem não pode ser negativa." };
   if (!(fixedCostPct >= 0)) return { error: "Os custos fixos não podem ser negativos." };
+  if (monthlySalesQty !== null && !(monthlySalesQty >= 0)) {
+    return { error: "A venda/mês não pode ser negativa." };
+  }
 
   const items = ingredientIds
     .map((id, i) => ({ ingredientId: id, qtyInBase: qtys[i] }))
@@ -69,6 +74,7 @@ export async function createRecipeAction(
       targetMarginPct,
       packagingCost,
       fixedCostPct,
+      monthlySalesQty,
       groups: {
         create: {
           name: "Massa",

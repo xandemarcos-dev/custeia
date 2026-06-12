@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
 import { formatBRL } from "@/lib/format";
@@ -43,20 +44,47 @@ export default async function MargemPage() {
         fixedCostPct: Number(r.fixedCostPct),
         targetMarginPct: Number(r.targetMarginPct),
       });
+      const monthlyQty =
+        r.monthlySalesQty == null ? null : Number(r.monthlySalesQty);
+      const monthlyGain =
+        m.belowTarget && monthlyQty != null
+          ? (m.suggestedPrice - Number(r.unitPrice)) * monthlyQty
+          : null;
       return {
         id: r.id,
         name: r.name,
         unitPrice: Number(r.unitPrice),
         target: Number(r.targetMarginPct),
+        monthlyQty,
+        monthlyGain,
         ...m,
       };
     })
     .sort((a, b) => a.marginGap - b.marginGap);
 
+  const ganhoTotalMes = rows.reduce((acc, r) => acc + (r.monthlyGain ?? 0), 0);
+  const produtosComGanho = rows.filter((r) => (r.monthlyGain ?? 0) > 0).length;
+
   return (
     <>
       <Header />
       <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
+        {ganhoTotalMes > 0 && (
+          <Card className="mb-4 border-l-[3px] border-l-[#2bc4b0]">
+            <CardContent className="pt-4">
+              <p className="text-sm text-muted-foreground">
+                Ajustando os {produtosComGanho} produto{produtosComGanho > 1 ? "s" : ""} abaixo da
+                meta (com volume informado) para o preço sugerido
+              </p>
+              <p className="mt-1 text-2xl font-semibold sm:text-3xl">
+                você ganharia{" "}
+                <span className="text-emerald-600">≈ {formatBRL(ganhoTotalMes, 2)}</span>{" "}
+                <span className="text-base font-normal text-muted-foreground">por mês</span>
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>Painel de Margem</CardTitle>
@@ -66,7 +94,7 @@ export default async function MargemPage() {
           </CardHeader>
           <CardContent>
             <Table>
-              <TableHeader>
+              <TableHeader className="[&_th]:border-b [&_th]:font-semibold [&_th]:text-foreground">
                 <TableRow>
                   <TableHead>Produto</TableHead>
                   <TableHead className="text-right">Preço/un.</TableHead>
@@ -74,7 +102,9 @@ export default async function MargemPage() {
                   <TableHead className="text-right">Custo/un.</TableHead>
                   <TableHead className="text-right">Margem</TableHead>
                   <TableHead className="text-right">Meta</TableHead>
+                  <TableHead className="text-right">Vol./mês</TableHead>
                   <TableHead className="text-right">Preço sugerido</TableHead>
+                  <TableHead className="text-right">Ganho/mês</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -102,9 +132,30 @@ export default async function MargemPage() {
                       {r.target.toFixed(0)}%
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
+                      {r.monthlyQty != null ? (
+                        r.monthlyQty.toLocaleString("pt-BR")
+                      ) : (
+                        <Link
+                          href={`/receitas/${r.id}/editar`}
+                          className="text-muted-foreground hover:text-foreground hover:underline"
+                        >
+                          definir
+                        </Link>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
                       {r.belowTarget ? (
                         <span className="font-medium text-red-600">
                           {formatBRL(r.suggestedPrice, 2)}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {r.monthlyGain != null && r.monthlyGain > 0 ? (
+                        <span className="font-medium text-emerald-600">
+                          +{formatBRL(r.monthlyGain, 2)}
                         </span>
                       ) : (
                         <span className="text-muted-foreground">—</span>

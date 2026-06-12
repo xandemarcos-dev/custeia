@@ -23,6 +23,8 @@ export async function updateRecipeAction(
   const targetMarginPct = Number(formData.get("targetMarginPct"));
   const packagingCost = Number(formData.get("packagingCost"));
   const fixedCostPct = Number(formData.get("fixedCostPct"));
+  const monthlySalesRaw = String(formData.get("monthlySalesQty") ?? "").trim();
+  const monthlySalesQty = monthlySalesRaw === "" ? null : Number(monthlySalesRaw);
   const ingredientIds = formData.getAll("ingredientId").map(String);
   const qtys = formData.getAll("qtyInBase").map((v) => Number(v));
 
@@ -38,6 +40,9 @@ export async function updateRecipeAction(
   if (!(targetMarginPct >= 0 && targetMarginPct < 100)) return { error: "A margem alvo deve estar entre 0 e 99%." };
   if (!(packagingCost >= 0)) return { error: "A embalagem não pode ser negativa." };
   if (!(fixedCostPct >= 0)) return { error: "Os custos fixos não podem ser negativos." };
+  if (monthlySalesQty !== null && !(monthlySalesQty >= 0)) {
+    return { error: "A venda/mês não pode ser negativa." };
+  }
 
   const ownedCat = await prisma.productCategory.findFirst({ where: { id: categoryId, workspaceId }, select: { id: true } });
   if (!ownedCat) return { error: "Categoria inválida." };
@@ -60,7 +65,7 @@ export async function updateRecipeAction(
   await prisma.$transaction(async (tx) => {
     await tx.recipe.update({
       where: { id },
-      data: { name, categoryId, yieldQty, unitPrice, targetMarginPct, packagingCost, fixedCostPct },
+      data: { name, categoryId, yieldQty, unitPrice, targetMarginPct, packagingCost, fixedCostPct, monthlySalesQty },
     });
     await tx.recipeIngredient.deleteMany({ where: { group: { recipeId: id } } });
     await tx.recipeIngredientGroup.deleteMany({ where: { recipeId: id } });

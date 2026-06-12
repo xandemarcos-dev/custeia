@@ -18,6 +18,7 @@ type Recipe = {
   targetMarginPct: number;
   packagingCost: number;
   fixedCostPct: number;
+  monthlySalesQty: number | null;
   items: { ingredientId: string; qtyInBase: number }[];
 };
 
@@ -58,7 +59,7 @@ export function EditRecipeForm({
         </select>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="space-y-1.5">
           <Label htmlFor="yieldQty">Rende (porções)</Label>
           <Input id="yieldQty" name="yieldQty" type="number" step="any" min="0" required defaultValue={recipe.yieldQty} />
@@ -66,6 +67,18 @@ export function EditRecipeForm({
         <div className="space-y-1.5">
           <Label htmlFor="unitPrice">Preço de venda (R$)</Label>
           <Input id="unitPrice" name="unitPrice" type="number" step="any" min="0" required defaultValue={recipe.unitPrice} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="monthlySalesQty">Venda/mês (un)</Label>
+          <Input
+            id="monthlySalesQty"
+            name="monthlySalesQty"
+            type="number"
+            step="any"
+            min="0"
+            placeholder="Opcional"
+            defaultValue={recipe.monthlySalesQty ?? ""}
+          />
         </div>
       </div>
 
