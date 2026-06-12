@@ -99,9 +99,16 @@ export default async function Home() {
           ))}
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
           {acoes.map((a) => (
-            <Link key={a.href} href={a.href} className={buttonVariants({ variant: "outline" })}>
+            <Link
+              key={a.href}
+              href={a.href}
+              className={buttonVariants({
+                variant: "outline",
+                className: "w-full sm:w-auto",
+              })}
+            >
               {a.label}
             </Link>
           ))}
@@ -118,22 +125,24 @@ export default async function Home() {
             <CardContent>
               <ul className="divide-y">
                 {abaixoDaMeta.slice(0, 5).map((m) => (
-                  <li key={m.id} className="flex items-center justify-between gap-4 py-2.5">
-                    <Link
-                      href={`/receitas/${m.id}/editar`}
-                      className="font-medium hover:underline"
-                    >
-                      {m.name}
-                    </Link>
-                    <div className="flex items-center gap-3 text-sm tabular-nums">
-                      <Badge variant="destructive">{m.marginPct.toFixed(1)}%</Badge>
-                      <span className="text-muted-foreground">
-                        vende a {formatBRL(m.unitPrice, 2)} · sugerido{" "}
-                        <span className="font-medium text-foreground">
-                          {formatBRL(m.suggestedPrice, 2)}
-                        </span>
-                      </span>
+                  <li key={m.id} className="py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <Link
+                        href={`/receitas/${m.id}/editar`}
+                        className="truncate font-medium hover:underline"
+                      >
+                        {m.name}
+                      </Link>
+                      <Badge variant="destructive" className="shrink-0">
+                        {m.marginPct.toFixed(1)}%
+                      </Badge>
                     </div>
+                    <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+                      vende a {formatBRL(m.unitPrice, 2)} · sugerido{" "}
+                      <span className="font-medium text-foreground">
+                        {formatBRL(m.suggestedPrice, 2)}
+                      </span>
+                    </p>
                   </li>
                 ))}
               </ul>
