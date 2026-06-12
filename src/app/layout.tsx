@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://batchflow-rho.vercel.app"),
   title: "BatchFlow — custo sob controle",
   description: "Precificação, estoque e margem para confeitaria. Saiba exatamente quanto custa cada produto e venda com a margem certa.",
   openGraph: {
