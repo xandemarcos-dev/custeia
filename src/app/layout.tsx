@@ -25,11 +25,13 @@ export const metadata: Metadata = {
     siteName: "BatchFlow",
     locale: "pt_BR",
     type: "website",
+    images: [{ url: "/og-image.svg", width: 1200, height: 630, alt: "BatchFlow" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "BatchFlow — custo sob controle",
     description: "Precificação, estoque e margem para confeitaria.",
+    images: ["/og-image.svg"],
   },
 };
 
