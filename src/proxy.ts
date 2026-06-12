@@ -12,7 +12,7 @@ export default clerkMiddleware(async (auth, req) => {
 export const config = {
   matcher: [
     // Pula arquivos internos do Next e estáticos, exceto se vierem em query.
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|txt|xml|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     // Sempre roda em rotas de API.
     "/(api|trpc)(.*)",
     // Sempre roda nas rotas internas do Clerk.
