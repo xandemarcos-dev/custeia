@@ -44,7 +44,7 @@ export default async function IngredientesPage() {
           }
         />
 
-        <Card>
+        <Card className="hidden md:block">
           <CardContent>
             <Table>
               <TableHeader>
@@ -95,14 +95,57 @@ export default async function IngredientesPage() {
                 ))}
               </TableBody>
             </Table>
-
-            {ingredients.length === 0 && (
-              <p className="py-8 text-center text-muted-foreground">
-                Nenhum insumo ainda. Clique em &ldquo;Novo insumo&rdquo;.
-              </p>
-            )}
           </CardContent>
         </Card>
+
+        {/* Mobile: cada insumo como card empilhado */}
+        <div className="space-y-2.5 md:hidden">
+          {ingredients.map((ing) => (
+            <div key={ing.id} className="rounded-2xl bg-card p-4 ring-1 ring-[#e8ebef]">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-bold text-[#16202b]">
+                    {ing.name}
+                    {ing.brand && (
+                      <span className="ml-1.5 font-normal text-muted-foreground">{ing.brand}</span>
+                    )}
+                  </p>
+                  <p className="mt-0.5 text-xs font-medium text-muted-foreground">
+                    {ing.category.name}
+                  </p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="font-bold tabular-nums text-[#16202b]">
+                    {formatBRL(Number(ing.avgCost))}
+                    <span className="text-xs font-normal text-muted-foreground">
+                      /{ing.baseUnit.baseUnit}
+                    </span>
+                  </p>
+                  <p className="text-xs tabular-nums text-muted-foreground">
+                    {Number(ing.stockQty).toLocaleString("pt-BR")} {ing.baseUnit.baseUnit} em estoque
+                  </p>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center gap-4 border-t border-[#eef1f3] pt-2.5 text-sm font-medium">
+                <Link
+                  href={`/insumos/${ing.id}/compras`}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Compras
+                </Link>
+                <Link href={`/insumos/${ing.id}/editar`} className="text-primary hover:underline">
+                  Editar
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {ingredients.length === 0 && (
+          <p className="py-8 text-center text-muted-foreground">
+            Nenhum insumo ainda. Clique em &ldquo;Novo insumo&rdquo;.
+          </p>
+        )}
       </main>
     </>
   );
