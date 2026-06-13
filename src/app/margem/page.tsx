@@ -90,7 +90,7 @@ export default async function MargemPage() {
           </Card>
         )}
 
-        <Card>
+        <Card className="hidden md:block">
           <CardContent>
             <Table>
               <TableHeader className="[&_th]:border-b">
@@ -167,14 +167,78 @@ export default async function MargemPage() {
                 ))}
               </TableBody>
             </Table>
-
-            {rows.length === 0 && (
-              <p className="py-8 text-center text-muted-foreground">
-                Nenhum produto ainda. Cadastre um produto para ver a margem.
-              </p>
-            )}
           </CardContent>
         </Card>
+
+        {/* Mobile: cada produto como card empilhado */}
+        <div className="space-y-2.5 md:hidden">
+          {rows.map((r) => (
+            <div key={r.id} className="rounded-2xl bg-card p-4 ring-1 ring-[#e8ebef]">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-bold text-[#16202b]">{r.name}</p>
+                  <p className="mt-0.5 text-xs font-medium text-muted-foreground tabular-nums">
+                    meta {r.target.toFixed(0)}%
+                  </p>
+                </div>
+                <span
+                  className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${
+                    severityBadge[marginSeverity(r.marginPct, r.marginGap)]
+                  }`}
+                >
+                  {r.marginPct.toFixed(1)}%
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 border-t border-[#eef1f3] pt-2.5 text-[13px]">
+                <span className="text-muted-foreground">Preço/un.</span>
+                <span className="text-right font-medium tabular-nums">
+                  {formatBRL(r.unitPrice, 2)}
+                </span>
+                <span className="text-muted-foreground">Custo/un.</span>
+                <span className="text-right font-medium tabular-nums">
+                  {formatBRL(r.unitCost, 2)}
+                </span>
+                <span className="text-muted-foreground">Vol./mês</span>
+                <span className="text-right font-medium tabular-nums">
+                  {r.monthlyQty != null ? (
+                    r.monthlyQty.toLocaleString("pt-BR")
+                  ) : (
+                    <Link
+                      href={`/receitas/${r.id}/editar`}
+                      className="font-medium text-primary hover:underline"
+                    >
+                      definir
+                    </Link>
+                  )}
+                </span>
+                {r.belowTarget && (
+                  <>
+                    <span className="text-muted-foreground">Sugerido</span>
+                    <span
+                      className={`text-right font-bold tabular-nums ${severityText[marginSeverity(r.marginPct, r.marginGap)]}`}
+                    >
+                      {formatBRL(r.suggestedPrice, 2)}
+                    </span>
+                  </>
+                )}
+                {r.monthlyGain != null && r.monthlyGain > 0 && (
+                  <>
+                    <span className="text-muted-foreground">Ganho/mês</span>
+                    <span className="text-right font-bold tabular-nums text-emerald-600">
+                      +{formatBRL(r.monthlyGain, 2)}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {rows.length === 0 && (
+          <p className="py-8 text-center text-muted-foreground">
+            Nenhum produto ainda. Cadastre um produto para ver a margem.
+          </p>
+        )}
       </main>
     </>
   );

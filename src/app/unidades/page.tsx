@@ -47,39 +47,65 @@ export default async function UnidadesPage() {
                 Nenhuma unidade cadastrada. Crie a primeira para começar.
               </p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Unidade base</TableHead>
-                    <TableHead className="text-right">Fator de conversão</TableHead>
-                    <TableHead>Exemplo</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {units.map((u) => (
-                    <TableRow key={u.id}>
-                      <TableCell className="font-medium">{u.name}</TableCell>
-                      <TableCell>{u.baseUnit}</TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {Number(u.toBaseFactor).toLocaleString("pt-BR")}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        1 {u.name} = {Number(u.toBaseFactor).toLocaleString("pt-BR")} {u.baseUnit}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Link
-                          href={`/unidades/${u.id}/editar`}
-                          className="text-sm font-medium text-primary hover:underline"
-                        >
-                          Editar
-                        </Link>
-                      </TableCell>
+              <>
+                <Table className="hidden md:table">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Unidade base</TableHead>
+                      <TableHead className="text-right">Fator de conversão</TableHead>
+                      <TableHead>Exemplo</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {units.map((u) => (
+                      <TableRow key={u.id}>
+                        <TableCell className="font-medium">{u.name}</TableCell>
+                        <TableCell>{u.baseUnit}</TableCell>
+                        <TableCell className="text-right tabular-nums">
+                          {Number(u.toBaseFactor).toLocaleString("pt-BR")}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          1 {u.name} = {Number(u.toBaseFactor).toLocaleString("pt-BR")}{" "}
+                          {u.baseUnit}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Link
+                            href={`/unidades/${u.id}/editar`}
+                            className="text-sm font-medium text-primary hover:underline"
+                          >
+                            Editar
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+
+                {/* Mobile: cada unidade como card empilhado */}
+                <div className="space-y-2.5 md:hidden">
+                  {units.map((u) => (
+                    <div
+                      key={u.id}
+                      className="flex items-center justify-between gap-3 rounded-2xl bg-card p-4 ring-1 ring-[#e8ebef]"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate font-bold text-[#16202b]">{u.name}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
+                          1 {u.name} = {Number(u.toBaseFactor).toLocaleString("pt-BR")} {u.baseUnit}
+                        </p>
+                      </div>
+                      <Link
+                        href={`/unidades/${u.id}/editar`}
+                        className="shrink-0 text-sm font-medium text-primary hover:underline"
+                      >
+                        Editar
+                      </Link>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
