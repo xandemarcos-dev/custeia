@@ -93,7 +93,7 @@ export default async function MargemPage() {
         <Card>
           <CardContent>
             <Table>
-              <TableHeader className="[&_th]:border-b [&_th]:font-semibold [&_th]:text-foreground">
+              <TableHeader className="[&_th]:border-b">
                 <TableRow>
                   <TableHead>Produto</TableHead>
                   <TableHead className="text-right">Preço/un.</TableHead>

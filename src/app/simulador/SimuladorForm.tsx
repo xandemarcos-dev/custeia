@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import type { Dimension } from "@/lib/dimension";
-import { dimensionLabel } from "@/lib/dimension";
+import { ArrowDownRight, ArrowUpRight, CheckCircle2, AlertTriangle } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -17,7 +17,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-type Option = { id: string; name: string };
 type IngredientOption = { id: string; name: string; dimension: Dimension };
 type UnitOption = {
   id: string;
@@ -173,10 +172,19 @@ function ScenarioCard({
       <p className="text-lg font-semibold">
         {brl(s.entryUnitCost)} <span className="text-sm font-normal text-muted-foreground">/{baseUnit}</span>
       </p>
-      <p className="mt-2 text-sm">
-        Novo custo médio: <span className="font-medium">{brl(s.newAvgCost)}</span>{" "}
-        <span className={s.deltaAvgCost <= 0 ? "text-green-600" : "text-red-600"}>
-          ({s.deltaAvgCost <= 0 ? "▼" : "▲"} {brl(Math.abs(s.deltaAvgCost))})
+      <p className="mt-2 flex flex-wrap items-center gap-1 text-sm">
+        Novo custo médio: <span className="font-medium">{brl(s.newAvgCost)}</span>
+        <span
+          className={`inline-flex items-center gap-0.5 font-medium ${
+            s.deltaAvgCost <= 0 ? "text-[#1f9d6b]" : "text-[#c8323c]"
+          }`}
+        >
+          {s.deltaAvgCost <= 0 ? (
+            <ArrowDownRight className="size-3.5" />
+          ) : (
+            <ArrowUpRight className="size-3.5" />
+          )}
+          {brl(Math.abs(s.deltaAvgCost))}
         </span>
       </p>
     </div>
@@ -256,11 +264,24 @@ export function SimuladorForm({
           )}
 
           {!r.b && (
-            <p className="text-sm">
-              {r.a.worthStocking
-                ? "✅ Esta compra abaixa seu custo médio — vale estocar."
-                : "⚠️ Esta compra não abaixa seu custo médio. Só estoque se precisar do insumo."}
-            </p>
+            <div
+              className={`flex items-start gap-2 rounded-lg px-3 py-2.5 text-sm font-medium ${
+                r.a.worthStocking
+                  ? "bg-[#e7f6ee] text-[#1f7a52]"
+                  : "bg-[#fbf2e3] text-[#8a5a17]"
+              }`}
+            >
+              {r.a.worthStocking ? (
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
+              ) : (
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+              )}
+              <span>
+                {r.a.worthStocking
+                  ? "Esta compra abaixa seu custo médio — vale estocar."
+                  : "Esta compra não abaixa seu custo médio. Só estoque se precisar do insumo."}
+              </span>
+            </div>
           )}
 
           {r.recipes.length > 0 && (
@@ -284,7 +305,9 @@ export function SimuladorForm({
                         {rec.currentMargin.toFixed(1)}%
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
-                        <span className={rec.belowTarget ? "font-medium text-red-600" : "font-medium text-green-600"}>
+                        <span
+                          className={`font-bold ${rec.belowTarget ? "text-[#c8323c]" : "text-[#1f9d6b]"}`}
+                        >
                           {rec.newMargin.toFixed(1)}%
                         </span>
                       </TableCell>

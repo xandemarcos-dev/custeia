@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/PageHeader";
+import { Card, CardContent } from "@/components/ui/card";
 import { dimensionOf } from "@/lib/dimension";
 import { SimuladorForm } from "./SimuladorForm";
 
@@ -31,13 +32,11 @@ export default async function SimuladorPage() {
     <>
       <Header />
       <main className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
+        <PageHeader
+          title="Simulador de compra"
+          description="Veja o impacto de uma compra no custo médio e na margem — sem registrar nada."
+        />
         <Card>
-          <CardHeader>
-            <CardTitle>Simulador de compra</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Veja o impacto de uma compra no custo médio e na margem — sem registrar nada.
-            </p>
-          </CardHeader>
           <CardContent>
             <SimuladorForm ingredients={ingredientOpts} units={unitOpts} />
           </CardContent>
