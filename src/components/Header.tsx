@@ -2,15 +2,7 @@ import Link from "next/link";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
-
-const navItems = [
-  { href: "/ingredientes", label: "Insumos" },
-  { href: "/receitas", label: "Produtos" },
-  { href: "/producao/nova", label: "Produção" },
-  { href: "/margem", label: "Margem" },
-  { href: "/simulador", label: "Simular" },
-  { href: "/unidades", label: "Unidades" },
-];
+import { NavLinks } from "@/components/NavLinks";
 
 async function getRestockCount(): Promise<number> {
   // Fora do try: se requireWorkspaceId redirecionar, o redirect deve propagar
@@ -29,31 +21,6 @@ async function getRestockCount(): Promise<number> {
 
 export async function Header() {
   const restock = await getRestockCount();
-
-  const links = (
-    <>
-      {navItems.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className="shrink-0 rounded-full px-3.5 py-2 text-[15px] font-semibold text-white/75 transition-colors hover:bg-[#2dd4bf]/15 hover:text-[#5eead4]"
-        >
-          {item.label}
-        </Link>
-      ))}
-      <Link
-        href="/reposicao"
-        className="flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[15px] font-semibold text-white/75 transition-colors hover:bg-[#2dd4bf]/15 hover:text-[#5eead4]"
-      >
-        Reposição
-        {restock > 0 && (
-          <span className="grid h-5 min-w-5 place-items-center rounded-full bg-red-600 px-1 text-xs font-medium text-white">
-            {restock}
-          </span>
-        )}
-      </Link>
-    </>
-  );
 
   return (
     <header className="sticky top-0 z-10 border-b border-white/10 bg-[#182131] text-white">
@@ -102,7 +69,7 @@ export async function Header() {
               </span>
             </span>
           </Link>
-          <nav className="hidden items-center gap-1 text-sm md:flex">{links}</nav>
+          <nav className="hidden items-center gap-1 text-sm md:flex"><NavLinks restock={restock} /></nav>
           <div className="ml-auto flex items-center">
             <Show when="signed-out">
               <SignInButton />
@@ -113,7 +80,7 @@ export async function Header() {
           </div>
         </div>
         <nav className="-mx-4 flex items-center gap-1 overflow-x-auto px-4 pb-2 text-sm md:hidden">
-          {links}
+          <NavLinks restock={restock} />
         </nav>
       </div>
     </header>
