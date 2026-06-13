@@ -5,6 +5,7 @@ import { formatBRL } from "@/lib/format";
 import { sumIngredientCost } from "@/services/recipeCost";
 import { computeMargin } from "@/services/margin";
 import { Header } from "@/components/Header";
+import { PageHeader } from "@/components/PageHeader";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -33,17 +34,15 @@ export default async function ReceitasPage() {
     <>
       <Header />
       <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Produtos</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Custo de produção calculado a partir do custo médio atual dos insumos.
-            </p>
-          </div>
-          <Link href="/receitas/nova" className={buttonVariants()}>
-            Novo produto
-          </Link>
-        </div>
+        <PageHeader
+          title="Produtos"
+          description="Custo de produção calculado a partir do custo médio atual dos insumos."
+          actions={
+            <Link href="/receitas/nova" className={buttonVariants()}>
+              Novo produto
+            </Link>
+          }
+        />
 
         <Card>
           <CardContent>

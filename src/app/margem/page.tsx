@@ -5,7 +5,8 @@ import { formatBRL } from "@/lib/format";
 import { sumIngredientCost } from "@/services/recipeCost";
 import { computeMargin } from "@/services/margin";
 import { Header } from "@/components/Header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/PageHeader";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -69,6 +70,10 @@ export default async function MargemPage() {
     <>
       <Header />
       <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
+        <PageHeader
+          title="Margem"
+          description="Margem real de cada produto vs a meta. Em vermelho, quem está abaixo."
+        />
         {ganhoTotalMes > 0 && (
           <Card className="mb-4 border-l-[3px] border-l-[#2bc4b0]">
             <CardContent className="pt-4">
@@ -86,12 +91,6 @@ export default async function MargemPage() {
         )}
 
         <Card>
-          <CardHeader>
-            <CardTitle>Painel de Margem</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Margem real de cada produto vs a meta. Em vermelho, quem está abaixo.
-            </p>
-          </CardHeader>
           <CardContent>
             <Table>
               <TableHeader className="[&_th]:border-b [&_th]:font-semibold [&_th]:text-foreground">

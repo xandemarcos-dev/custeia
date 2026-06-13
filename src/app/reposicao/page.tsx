@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
+import { PageHeader } from "@/components/PageHeader";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -38,12 +39,12 @@ export default async function ReposicaoPage() {
     <>
       <Header />
       <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-10">
-        <h1 className="text-2xl font-semibold tracking-tight">Reposição</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Insumos abaixo do estoque mínimo — hora de comprar.
-        </p>
+        <PageHeader
+          title="Reposição"
+          description="Insumos abaixo do estoque mínimo — hora de comprar."
+        />
 
-        <Card className="mt-6">
+        <Card>
           <CardContent>
             <Table>
               <TableHeader>

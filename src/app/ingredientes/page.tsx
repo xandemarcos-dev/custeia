@@ -3,8 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
 import { formatBRL } from "@/lib/format";
 import { Header } from "@/components/Header";
+import { PageHeader } from "@/components/PageHeader";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -28,22 +29,20 @@ export default async function IngredientesPage() {
     <>
       <Header />
       <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Ingredientes</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Custo médio ponderado móvel de cada insumo.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link href="/insumos/novo" className={buttonVariants({ variant: "outline" })}>
-              Novo insumo
-            </Link>
-            <Link href="/entradas/nova" className={buttonVariants()}>
-              Nova compra
-            </Link>
-          </div>
-        </div>
+        <PageHeader
+          title="Insumos"
+          description="Custo médio ponderado móvel de cada insumo."
+          actions={
+            <>
+              <Link href="/insumos/novo" className={buttonVariants({ variant: "outline" })}>
+                Novo insumo
+              </Link>
+              <Link href="/entradas/nova" className={buttonVariants()}>
+                Nova compra
+              </Link>
+            </>
+          }
+        />
 
         <Card>
           <CardContent>
@@ -99,7 +98,7 @@ export default async function IngredientesPage() {
 
             {ingredients.length === 0 && (
               <p className="py-8 text-center text-muted-foreground">
-                Nenhum ingrediente ainda. Clique em &ldquo;Novo insumo&rdquo;.
+                Nenhum insumo ainda. Clique em &ldquo;Novo insumo&rdquo;.
               </p>
             )}
           </CardContent>
