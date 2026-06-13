@@ -155,7 +155,7 @@ export default async function Home() {
                   >
                     {value}
                   </p>
-                  <p className="mt-2 text-[13.5px] font-medium leading-snug text-muted-foreground">
+                  <p className="mt-2 text-[13px] font-medium leading-snug text-muted-foreground">
                     {label}
                   </p>
                 </CardContent>
@@ -273,7 +273,7 @@ export default async function Home() {
                           </p>
                         </div>
                         <span
-                          className={`shrink-0 rounded-full px-2.5 py-1 text-[12.5px] font-bold tabular-nums ${severity}`}
+                          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${severity}`}
                         >
                           {m.marginPct.toFixed(1)}%
                         </span>

@@ -36,14 +36,14 @@ export async function Header() {
         <Link
           key={item.href}
           href={item.href}
-          className="shrink-0 rounded-md px-3 py-1.5 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+          className="shrink-0 rounded-md px-3 py-1.5 font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
         >
           {item.label}
         </Link>
       ))}
       <Link
         href="/reposicao"
-        className="flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+        className="flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
       >
         Reposição
         {restock > 0 && (
@@ -60,7 +60,7 @@ export async function Header() {
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <div className="flex h-14 items-center gap-6 md:h-16">
           <Link href="/" className="flex items-center" aria-label="BatchFlow — início">
-            <span className="text-lg font-semibold tracking-tight text-white">
+            <span className="text-[19px] font-extrabold tracking-tight text-white">
               Batch<span className="text-[#2bc4b0]">Flow</span>
             </span>
           </Link>
