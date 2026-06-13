@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { marginSeverity, severityBadge, severityText } from "@/lib/severity";
 
 export const dynamic = "force-dynamic";
 
@@ -120,12 +120,13 @@ export default async function MargemPage() {
                       {formatBRL(r.unitCost, 2)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Badge
-                        variant={r.belowTarget ? "destructive" : "default"}
-                        className={r.belowTarget ? "" : "bg-green-600 text-white"}
+                      <span
+                        className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${
+                          severityBadge[marginSeverity(r.marginPct, r.marginGap)]
+                        }`}
                       >
                         {r.marginPct.toFixed(1)}%
-                      </Badge>
+                      </span>
                     </TableCell>
                     <TableCell className="text-right tabular-nums text-muted-foreground">
                       {r.target.toFixed(0)}%
@@ -144,7 +145,9 @@ export default async function MargemPage() {
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {r.belowTarget ? (
-                        <span className="font-medium text-red-600">
+                        <span
+                          className={`font-bold ${severityText[marginSeverity(r.marginPct, r.marginGap)]}`}
+                        >
                           {formatBRL(r.suggestedPrice, 2)}
                         </span>
                       ) : (

@@ -5,6 +5,7 @@ import { formatBRL } from "@/lib/format";
 import { sumIngredientCost } from "@/services/recipeCost";
 import { computeMargin } from "@/services/margin";
 import { computePriceIncreases, type EntryForAlert } from "@/services/priceAlerts";
+import { marginSeverity, severityBadge, severityBar } from "@/lib/severity";
 import { Header } from "@/components/Header";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -298,13 +299,7 @@ export default async function Home() {
               </div>
               <ul>
                 {abaixoDaMeta.slice(0, 5).map((m, i, arr) => {
-                  // marginGap é negativo abaixo da meta; até 5 p.p. de distância = quase lá.
-                  const sev =
-                    m.marginPct < 0
-                      ? { badge: "bg-[#fdecee] text-[#c8323c]", bar: "bg-[#d23c47]" }
-                      : m.marginGap >= -5
-                        ? { badge: "bg-[#e7f6ee] text-[#1f9d6b]", bar: "bg-[#1f9d6b]" }
-                        : { badge: "bg-[#fbf2e3] text-[#b3741a]", bar: "bg-[#e0a33e]" };
+                  const s = marginSeverity(m.marginPct, m.marginGap);
                   return (
                     <li
                       key={m.id}
@@ -316,7 +311,7 @@ export default async function Home() {
                         href={`/receitas/${m.id}/editar`}
                         className="flex items-center gap-3.5 px-3 py-4"
                       >
-                        <span className={`h-9 w-1 shrink-0 rounded-full ${sev.bar}`} />
+                        <span className={`h-9 w-1 shrink-0 rounded-full ${severityBar[s]}`} />
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-[15px] font-bold tracking-tight text-[#16202b]">
                             {m.name}
@@ -338,7 +333,7 @@ export default async function Home() {
                           </p>
                         </div>
                         <span
-                          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${sev.badge}`}
+                          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${severityBadge[s]}`}
                         >
                           {m.marginPct.toFixed(1)}%
                         </span>

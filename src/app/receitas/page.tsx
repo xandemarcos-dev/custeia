@@ -4,6 +4,7 @@ import { requireWorkspaceId } from "@/lib/workspace";
 import { formatBRL } from "@/lib/format";
 import { sumIngredientCost } from "@/services/recipeCost";
 import { computeMargin } from "@/services/margin";
+import { marginSeverity, severityText } from "@/lib/severity";
 import { Header } from "@/components/Header";
 import { PageHeader } from "@/components/PageHeader";
 import { buttonVariants } from "@/components/ui/button";
@@ -104,7 +105,9 @@ export default async function ReceitasPage() {
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {margem?.belowTarget ? (
-                          <span className="font-medium text-destructive">
+                          <span
+                            className={`font-bold ${severityText[marginSeverity(margem.marginPct, margem.marginGap)]}`}
+                          >
                             {formatBRL(margem.suggestedPrice, 2)}
                           </span>
                         ) : (

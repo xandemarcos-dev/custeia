@@ -4,6 +4,7 @@ import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
 import { PageHeader } from "@/components/PageHeader";
 import { buttonVariants } from "@/components/ui/button";
+import { CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -38,7 +39,7 @@ export default async function ReposicaoPage() {
   return (
     <>
       <Header />
-      <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-10">
+      <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
         <PageHeader
           title="Reposição"
           description="Insumos abaixo do estoque mínimo — hora de comprar."
@@ -95,9 +96,14 @@ export default async function ReposicaoPage() {
             </Table>
 
             {toRestock.length === 0 && (
-              <p className="py-8 text-center text-muted-foreground">
-                ✅ Tudo em dia — nenhum insumo abaixo do estoque mínimo.
-              </p>
+              <div className="flex flex-col items-center gap-3 py-10 text-center">
+                <span className="grid size-10 place-items-center rounded-xl bg-[#e7f6ee] text-[#1f9d6b]">
+                  <CheckCircle2 className="size-5" />
+                </span>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Tudo em dia — nenhum insumo abaixo do estoque mínimo.
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>
