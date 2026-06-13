@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="BatchFlow">
+  <defs>
+    <linearGradient id="bfm" x1="24" y1="20" x2="96" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6ff0dc"/>
+      <stop offset="0.5" stop-color="#2dd4bf"/>
+      <stop offset="1" stop-color="#11a594"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#bfm)" stroke-width="17" stroke-linejoin="round">
+    <path d="M62,14 L50,42 Q26,44 26,55 Q26,66 44,62"/>
+    <path d="M62,14 L50,42 Q26,44 26,55 Q26,66 44,62" transform="rotate(180 60 60)"/>
+  </g>
+</svg>

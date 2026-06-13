@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
@@ -65,14 +64,37 @@ export async function Header() {
             className="group flex items-center gap-2.5 transition-transform duration-150 hover:scale-[1.04] active:scale-100"
             aria-label="BatchFlow — início"
           >
-            <Image
-              src="/batchflow-mark.png"
-              alt=""
-              width={34}
-              height={34}
-              priority
-              className="size-[34px] rounded-[10px] shadow-[0_2px_10px_rgba(45,212,191,0.22),inset_0_0_0_1px_rgba(255,255,255,0.06)]"
-            />
+            <span className="grid size-[34px] shrink-0 place-items-center rounded-[10px] bg-[#161c29] shadow-[0_2px_10px_rgba(45,212,191,0.22),inset_0_0_0_1px_rgba(255,255,255,0.06)]">
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 120 120"
+                aria-hidden="true"
+                className="transition-transform duration-150 group-hover:scale-110"
+              >
+                <defs>
+                  <linearGradient
+                    id="bf-mark"
+                    x1="24"
+                    y1="20"
+                    x2="96"
+                    y2="100"
+                    gradientUnits="userSpaceOnUse"
+                  >
+                    <stop offset="0" stopColor="#6ff0dc" />
+                    <stop offset="0.5" stopColor="#2dd4bf" />
+                    <stop offset="1" stopColor="#11a594" />
+                  </linearGradient>
+                </defs>
+                <g fill="none" stroke="url(#bf-mark)" strokeWidth="17" strokeLinejoin="round">
+                  <path d="M62,14 L50,42 Q26,44 26,55 Q26,66 44,62" />
+                  <path
+                    d="M62,14 L50,42 Q26,44 26,55 Q26,66 44,62"
+                    transform="rotate(180 60 60)"
+                  />
+                </g>
+              </svg>
+            </span>
             <span className="text-[19px] font-extrabold tracking-tight text-white">
               Batch
               <span className="text-[#2bc4b0] transition-colors duration-150 group-hover:text-[#5eead4]">
