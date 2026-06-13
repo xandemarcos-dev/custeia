@@ -240,12 +240,13 @@ export default async function Home() {
               </p>
               <ul className="mt-3">
                 {abaixoDaMeta.slice(0, 5).map((m, i, arr) => {
-                  const severity =
+                  // marginGap é negativo abaixo da meta; até 5 p.p. de distância = quase lá.
+                  const sev =
                     m.marginPct < 0
-                      ? "bg-[#fdecee] text-[#c8323c]"
-                      : m.marginGap <= 5
-                        ? "bg-[#e7f6ee] text-[#1f9d6b]"
-                        : "bg-[#fbf2e3] text-[#b3741a]";
+                      ? { badge: "bg-[#fdecee] text-[#c8323c]", bar: "bg-[#d23c47]" }
+                      : m.marginGap >= -5
+                        ? { badge: "bg-[#e7f6ee] text-[#1f9d6b]", bar: "bg-[#1f9d6b]" }
+                        : { badge: "bg-[#fbf2e3] text-[#b3741a]", bar: "bg-[#e0a33e]" };
                   return (
                     <li
                       key={m.id}
@@ -255,28 +256,39 @@ export default async function Home() {
                     >
                       <Link
                         href={`/receitas/${m.id}/editar`}
-                        className="flex items-center justify-between gap-3 px-3 py-3.5"
+                        className="flex items-center gap-3.5 px-3 py-4"
                       >
-                        <div className="min-w-0">
-                          <p className="truncate text-[15px] font-semibold text-[#1c2733]">
+                        <span className={`h-9 w-1 shrink-0 rounded-full ${sev.bar}`} />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[15px] font-bold tracking-tight text-[#16202b]">
                             {m.name}
                           </p>
-                          <p className="mt-1 text-[13px] font-medium text-[#7a8490] tabular-nums">
-                            vende a{" "}
-                            <span className="font-bold text-[#2a3540]">
-                              {formatBRL(m.unitPrice, 2)}
-                            </span>{" "}
-                            · sugerido{" "}
-                            <span className="font-bold text-[#0f9b8e]">
-                              {formatBRL(m.suggestedPrice, 2)}
+                          <p className="mt-1.5 flex items-center gap-1.5 text-[13px] text-[#7a8490] tabular-nums">
+                            <span>
+                              vende a{" "}
+                              <span className="font-bold text-[#2a3540]">
+                                {formatBRL(m.unitPrice, 2)}
+                              </span>
+                            </span>
+                            <ArrowRight className="size-3.5 shrink-0 text-[#b6bec7]" />
+                            <span>
+                              sugerido{" "}
+                              <span className="font-bold text-[#0f9b8e]">
+                                {formatBRL(m.suggestedPrice, 2)}
+                              </span>
                             </span>
                           </p>
                         </div>
-                        <span
-                          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${severity}`}
-                        >
-                          {m.marginPct.toFixed(1)}%
-                        </span>
+                        <div className="flex shrink-0 flex-col items-end gap-1">
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${sev.badge}`}
+                          >
+                            {m.marginPct.toFixed(1)}%
+                          </span>
+                          <span className="text-[11px] font-medium uppercase tracking-wide text-[#9aa4ae]">
+                            margem
+                          </span>
+                        </div>
                       </Link>
                     </li>
                   );

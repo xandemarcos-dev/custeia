@@ -59,9 +59,16 @@ export async function Header() {
     <header className="sticky top-0 z-10 border-b border-white/10 bg-[#182131] text-white">
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <div className="flex h-14 items-center gap-6 md:h-16">
-          <Link href="/" className="flex items-center" aria-label="BatchFlow — início">
+          <Link
+            href="/"
+            className="group flex items-center gap-2.5 transition-transform duration-150 hover:scale-[1.04] active:scale-100"
+            aria-label="BatchFlow — início"
+          >
             <span className="text-[19px] font-extrabold tracking-tight text-white">
-              Batch<span className="text-[#2bc4b0]">Flow</span>
+              Batch
+              <span className="text-[#2bc4b0] transition-colors duration-150 group-hover:text-[#5eead4]">
+                Flow
+              </span>
             </span>
           </Link>
           <nav className="hidden items-center gap-1 text-sm md:flex">{links}</nav>
