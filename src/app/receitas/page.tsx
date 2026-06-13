@@ -5,7 +5,6 @@ import { formatBRL } from "@/lib/format";
 import { sumIngredientCost } from "@/services/recipeCost";
 import { computeMargin } from "@/services/margin";
 import { marginSeverity, severityText } from "@/lib/severity";
-import { categoryChip } from "@/lib/categoryChip";
 import { Header } from "@/components/Header";
 import { PageHeader } from "@/components/PageHeader";
 import { buttonVariants } from "@/components/ui/button";
@@ -86,7 +85,6 @@ export default async function ReceitasPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Produto</TableHead>
-                  <TableHead>Categoria</TableHead>
                   <TableHead className="text-right">Rende</TableHead>
                   <TableHead className="text-right">Custo do lote</TableHead>
                   <TableHead className="text-right">Custo / porção</TableHead>
@@ -100,15 +98,6 @@ export default async function ReceitasPage() {
                 {rows.map((r) => (
                   <TableRow key={r.id}>
                     <TableCell className="font-medium">{r.name}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${categoryChip(
-                          r.category
-                        )}`}
-                      >
-                        {r.category}
-                      </span>
-                    </TableCell>
                     <TableCell className="text-right tabular-nums">{r.yieldQty}</TableCell>
                     <TableCell className="text-right tabular-nums">
                       {formatBRL(r.custoLote, 2)}
@@ -159,13 +148,9 @@ export default async function ReceitasPage() {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate font-bold text-[#16202b]">{r.name}</p>
-                  <span
-                    className={`mt-1.5 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${categoryChip(
-                      r.category
-                    )}`}
-                  >
-                    {r.category}
-                  </span>
+                  <p className="mt-0.5 text-xs font-medium text-muted-foreground tabular-nums">
+                    rende {r.yieldQty}
+                  </p>
                 </div>
                 <div className="shrink-0 text-right">
                   <p className="font-bold tabular-nums text-[#16202b]">
