@@ -94,7 +94,7 @@ export default async function ReposicaoPage() {
                           <div className="flex items-center justify-end gap-3">
                             <Link
                               href="/simulador"
-                              className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+                              className="text-sm font-medium text-primary hover:underline"
                             >
                               Simular
                             </Link>
@@ -145,7 +145,7 @@ export default async function ReposicaoPage() {
                   <div className="mt-3 flex items-center justify-end gap-3 border-t border-[#eef1f3] pt-2.5">
                     <Link
                       href="/simulador"
-                      className="text-sm font-medium text-muted-foreground hover:text-foreground"
+                      className="text-sm font-medium text-primary hover:underline"
                     >
                       Simular
                     </Link>

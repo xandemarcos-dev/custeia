@@ -88,13 +88,13 @@ export default async function IngredientesPage() {
                       <div className="flex items-center justify-end gap-3">
                         <Link
                           href={`/insumos/${ing.id}/compras`}
-                          className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+                          className="text-sm font-medium text-primary hover:underline"
                         >
                           Compras
                         </Link>
                         <Link
                           href={`/insumos/${ing.id}/editar`}
-                          className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+                          className="text-sm font-medium text-primary hover:underline"
                         >
                           Editar
                         </Link>
@@ -142,7 +142,7 @@ export default async function IngredientesPage() {
               <div className="mt-3 flex items-center gap-4 border-t border-[#eef1f3] pt-2.5 text-sm font-medium">
                 <Link
                   href={`/insumos/${ing.id}/compras`}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="text-primary hover:underline"
                 >
                   Compras
                 </Link>

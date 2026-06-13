@@ -137,7 +137,7 @@ export default async function MargemPage() {
                       ) : (
                         <Link
                           href={`/receitas/${r.id}/editar`}
-                          className="text-muted-foreground hover:text-foreground hover:underline"
+                          className="font-medium text-primary hover:underline"
                         >
                           definir
                         </Link>
