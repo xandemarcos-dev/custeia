@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
@@ -64,6 +65,14 @@ export async function Header() {
             className="group flex items-center gap-2.5 transition-transform duration-150 hover:scale-[1.04] active:scale-100"
             aria-label="BatchFlow — início"
           >
+            <Image
+              src="/batchflow-mark.png"
+              alt=""
+              width={34}
+              height={34}
+              priority
+              className="size-[34px] rounded-[10px] shadow-[0_2px_10px_rgba(45,212,191,0.22),inset_0_0_0_1px_rgba(255,255,255,0.06)]"
+            />
             <span className="text-[19px] font-extrabold tracking-tight text-white">
               Batch
               <span className="text-[#2bc4b0] transition-colors duration-150 group-hover:text-[#5eead4]">
