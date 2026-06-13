@@ -93,7 +93,7 @@ function ScenarioFields({
           ))}
         </select>
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-3">
         <div className="space-y-1.5">
           <Label htmlFor={`qty${suffix}`}>Qtd</Label>
           <Input
@@ -108,7 +108,7 @@ function ScenarioFields({
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor={`total${suffix}`}>Preço total (R$)</Label>
+          <Label htmlFor={`total${suffix}`}>Preço (R$)</Label>
           <Input
             id={`total${suffix}`}
             name={`productTotal${suffix}`}
@@ -121,7 +121,7 @@ function ScenarioFields({
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor={`freight${suffix}`}>Frete total (R$)</Label>
+          <Label htmlFor={`freight${suffix}`}>Frete (R$)</Label>
           <Input
             id={`freight${suffix}`}
             name={`freightTotal${suffix}`}

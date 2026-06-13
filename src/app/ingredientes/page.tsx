@@ -4,6 +4,7 @@ import { requireWorkspaceId } from "@/lib/workspace";
 import { formatBRL } from "@/lib/format";
 import { Header } from "@/components/Header";
 import { PageHeader } from "@/components/PageHeader";
+import { categoryChip } from "@/lib/categoryChip";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -67,7 +68,15 @@ export default async function IngredientesPage() {
                         </span>
                       )}
                     </TableCell>
-                    <TableCell>{ing.category.name}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${categoryChip(
+                          ing.category.name
+                        )}`}
+                      >
+                        {ing.category.name}
+                      </span>
+                    </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {Number(ing.stockQty).toLocaleString("pt-BR")} {ing.baseUnit.baseUnit}
                     </TableCell>
@@ -110,9 +119,13 @@ export default async function IngredientesPage() {
                       <span className="ml-1.5 font-normal text-muted-foreground">{ing.brand}</span>
                     )}
                   </p>
-                  <p className="mt-0.5 text-xs font-medium text-muted-foreground">
+                  <span
+                    className={`mt-1.5 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${categoryChip(
+                      ing.category.name
+                    )}`}
+                  >
                     {ing.category.name}
-                  </p>
+                  </span>
                 </div>
                 <div className="shrink-0 text-right">
                   <p className="font-bold tabular-nums text-[#16202b]">

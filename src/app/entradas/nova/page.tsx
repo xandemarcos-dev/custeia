@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/PageHeader";
+import { Card, CardContent } from "@/components/ui/card";
 import { dimensionOf } from "@/lib/dimension";
 import { NewEntryForm } from "./NewEntryForm";
 
@@ -36,13 +37,11 @@ export default async function NovaEntradaPage() {
     <>
       <Header />
       <main className="mx-auto w-full max-w-xl px-4 py-6 sm:px-6 sm:py-10">
+        <PageHeader
+          title="Nova compra"
+          description="Registre uma entrada de insumo. O custo médio é recalculado automaticamente."
+        />
         <Card>
-          <CardHeader>
-            <CardTitle>Nova compra</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Registre uma entrada de insumo. O custo médio é recalculado automaticamente.
-            </p>
-          </CardHeader>
           <CardContent>
             <NewEntryForm
               ingredients={ingredientOpts}

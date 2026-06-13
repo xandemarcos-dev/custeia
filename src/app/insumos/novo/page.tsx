@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/PageHeader";
+import { Card, CardContent } from "@/components/ui/card";
 import { NewIngredientForm } from "./NewIngredientForm";
 
 export const dynamic = "force-dynamic";
@@ -18,13 +19,11 @@ export default async function NovoInsumoPage() {
     <>
       <Header />
       <main className="mx-auto w-full max-w-xl px-4 py-6 sm:px-6 sm:py-10">
+        <PageHeader
+          title="Novo insumo"
+          description="Cadastre um insumo. O custo médio aparece depois da primeira compra."
+        />
         <Card>
-          <CardHeader>
-            <CardTitle>Novo insumo</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Cadastre um insumo. O custo médio aparece depois da primeira compra.
-            </p>
-          </CardHeader>
           <CardContent>
             <NewIngredientForm categories={categories} units={units} />
           </CardContent>

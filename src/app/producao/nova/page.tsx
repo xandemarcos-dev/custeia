@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
 import { Header } from "@/components/Header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/PageHeader";
+import { Card, CardContent } from "@/components/ui/card";
 import { NewProductionForm } from "./NewProductionForm";
 
 export const dynamic = "force-dynamic";
@@ -54,14 +55,11 @@ export default async function NovaProducaoPage() {
     <>
       <Header />
       <main className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
+        <PageHeader
+          title="Registrar produção"
+          description="Informe quantos lotes você produziu. O estoque dos insumos é baixado automaticamente conforme a ficha técnica."
+        />
         <Card>
-          <CardHeader>
-            <CardTitle>Registrar produção</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Informe quantos lotes você produziu. O estoque dos insumos é
-              baixado automaticamente conforme a ficha técnica.
-            </p>
-          </CardHeader>
           <CardContent>
             <NewProductionForm recipes={recipeOpts} />
           </CardContent>
