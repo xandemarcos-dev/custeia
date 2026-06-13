@@ -232,13 +232,28 @@ export default async function Home() {
         {abaixoDaMeta.length > 0 && (
           <Card className="mt-4 rounded-2xl">
             <CardContent className="pt-2">
-              <h2 className="text-[17px] font-bold tracking-tight text-[#16202b]">
-                Atenção primeiro
-              </h2>
-              <p className="mt-1 text-sm font-medium text-muted-foreground">
-                Os produtos com margem mais distante da meta.
-              </p>
-              <ul className="mt-3">
+              <div className="flex items-center gap-3">
+                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[#fdecee] text-[#d23c47]">
+                  <AlertTriangle className="size-[18px]" />
+                </span>
+                <div>
+                  <h2 className="text-lg font-extrabold tracking-tight text-[#16202b]">
+                    Atenção primeiro
+                  </h2>
+                  <p className="text-[13px] font-medium text-muted-foreground">
+                    Os produtos com margem mais distante da meta.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center justify-between border-b border-[#eef1f3] pb-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-[#9aa4ae]">
+                  Produto
+                </span>
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-[#9aa4ae]">
+                  Margem
+                </span>
+              </div>
+              <ul>
                 {abaixoDaMeta.slice(0, 5).map((m, i, arr) => {
                   // marginGap é negativo abaixo da meta; até 5 p.p. de distância = quase lá.
                   const sev =
@@ -279,16 +294,11 @@ export default async function Home() {
                             </span>
                           </p>
                         </div>
-                        <div className="flex shrink-0 flex-col items-end gap-1">
-                          <span
-                            className={`rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${sev.badge}`}
-                          >
-                            {m.marginPct.toFixed(1)}%
-                          </span>
-                          <span className="text-[11px] font-medium uppercase tracking-wide text-[#9aa4ae]">
-                            margem
-                          </span>
-                        </div>
+                        <span
+                          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${sev.badge}`}
+                        >
+                          {m.marginPct.toFixed(1)}%
+                        </span>
                       </Link>
                     </li>
                   );
