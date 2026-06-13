@@ -36,14 +36,14 @@ export async function Header() {
         <Link
           key={item.href}
           href={item.href}
-          className="shrink-0 rounded-md px-3 py-1.5 font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+          className="shrink-0 rounded-full px-3.5 py-2 text-[15px] font-semibold text-white/75 transition-colors hover:bg-[#2dd4bf]/15 hover:text-[#5eead4]"
         >
           {item.label}
         </Link>
       ))}
       <Link
         href="/reposicao"
-        className="flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+        className="flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[15px] font-semibold text-white/75 transition-colors hover:bg-[#2dd4bf]/15 hover:text-[#5eead4]"
       >
         Reposição
         {restock > 0 && (
