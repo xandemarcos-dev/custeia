@@ -19,6 +19,7 @@ import {
   Layers,
   Wallet,
   TrendingUp,
+  CheckCircle2,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -63,11 +64,18 @@ export default async function Home() {
         fixedCostPct: Number(r.fixedCostPct),
         targetMarginPct: Number(r.targetMarginPct),
       });
-      return { id: r.id, name: r.name, unitPrice: Number(r.unitPrice), ...m };
+      const monthlyQty = r.monthlySalesQty == null ? null : Number(r.monthlySalesQty);
+      const monthlyGain =
+        m.belowTarget && monthlyQty != null
+          ? (m.suggestedPrice - Number(r.unitPrice)) * monthlyQty
+          : null;
+      return { id: r.id, name: r.name, unitPrice: Number(r.unitPrice), monthlyGain, ...m };
     })
     .sort((a, b) => a.marginGap - b.marginGap);
 
   const abaixoDaMeta = margens.filter((m) => m.belowTarget);
+  const ganhoTotalMes = margens.reduce((acc, m) => acc + (m.monthlyGain ?? 0), 0);
+  const produtosComGanho = margens.filter((m) => (m.monthlyGain ?? 0) > 0).length;
   const paraRepor = ingredients.filter(
     (i) => Number(i.minStockQty) > 0 && Number(i.stockQty) < Number(i.minStockQty)
   ).length;
@@ -197,8 +205,8 @@ export default async function Home() {
             </CardContent>
           </Card>
 
-          {priceAlerts.length > 0 && (
-            <Card className="relative rounded-2xl ring-1 ring-[#f3d9dc]">
+          {priceAlerts.length > 0 ? (
+            <Card className="relative h-full rounded-2xl ring-1 ring-[#f3d9dc]">
               <CardContent className="pt-1">
                 <span className="absolute right-4 top-4 grid size-9 place-items-center rounded-xl bg-[#fdecee] text-[#d23c47]">
                   <TrendingUp className="size-[18px]" />
@@ -224,6 +232,41 @@ export default async function Home() {
                     e mais {priceAlerts.length - 3} na última compra.
                   </p>
                 )}
+              </CardContent>
+            </Card>
+          ) : ganhoTotalMes > 0 ? (
+            <Link href="/margem" className="block h-full">
+              <Card className="relative h-full rounded-2xl border-0 bg-gradient-to-br from-white to-[#f1fbf4] ring-1 ring-[#d4eede] transition-shadow hover:shadow-[0_6px_18px_rgba(16,24,40,0.08)]">
+                <CardContent className="pt-1">
+                  <span className="absolute right-4 top-4 grid size-9 place-items-center rounded-xl bg-[#dcf5e6] text-[#1f9d6b]">
+                    <TrendingUp className="size-[18px]" />
+                  </span>
+                  <p className="text-[13px] font-semibold uppercase tracking-wide text-[#4f7a63]">
+                    Ganho deixado na mesa
+                  </p>
+                  <p className="mt-2 text-3xl font-extrabold tracking-tight tabular-nums text-[#16202b] sm:text-4xl">
+                    ≈ {formatBRL(ganhoTotalMes, 2)}
+                    <span className="ml-1.5 text-base font-bold text-muted-foreground">/mês</span>
+                  </p>
+                  <p className="mt-2 text-[13px] font-medium text-muted-foreground">
+                    Ajustando {produtosComGanho} produto{produtosComGanho > 1 ? "s" : ""} abaixo da
+                    meta ao preço sugerido.
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+          ) : (
+            <Card className="relative h-full rounded-2xl ring-1 ring-[#e8ebef]">
+              <CardContent className="flex h-full flex-col justify-center pt-1">
+                <span className="grid size-9 place-items-center rounded-xl bg-[#e7f6ee] text-[#1f9d6b]">
+                  <CheckCircle2 className="size-[18px]" />
+                </span>
+                <p className="mt-3 text-[15px] font-bold text-[#1c2733]">Sem aumentos de preço</p>
+                <p className="mt-1 text-[13px] font-medium text-muted-foreground">
+                  {abaixoDaMeta.length > 0
+                    ? "Defina o volume mensal dos produtos no Painel de Margem para estimar o ganho possível."
+                    : "Nenhum insumo subiu de preço na última compra."}
+                </p>
               </CardContent>
             </Card>
           )}
