@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HelpCircle } from "lucide-react";
 import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
@@ -70,7 +71,14 @@ export async function Header() {
             </span>
           </Link>
           <nav className="hidden items-center gap-1 text-sm md:flex"><NavLinks restock={restock} /></nav>
-          <div className="ml-auto flex items-center">
+          <div className="ml-auto flex items-center gap-1.5">
+            <Link
+              href="/ajuda"
+              aria-label="Ajuda"
+              className="flex size-9 items-center justify-center rounded-full text-white/75 transition-colors hover:bg-[#2dd4bf]/15 hover:text-[#5eead4]"
+            >
+              <HelpCircle className="size-[18px]" />
+            </Link>
             <Show when="signed-out">
               <SignInButton />
             </Show>

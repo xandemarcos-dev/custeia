@@ -128,3 +128,11 @@
     @apply font-sans;
   }
 }
+
+/* Ao imprimir/salvar PDF (ex.: manual em /ajuda), expande os blocos <details>
+   recolhidos para que todo o conteúdo apareça no documento. */
+@media print {
+  details:not([open]) > *:not(summary) {
+    display: revert !important;
+  }
+}
