@@ -28,7 +28,7 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   const workspaceId = await requireWorkspaceId();
 
-  const [recipes, ingredients, entries] = await Promise.all([
+  const [recipes, ingredients, recentEntries] = await Promise.all([
     prisma.recipe.findMany({
       where: { isActive: true, workspaceId },
       include: { groups: { include: { ingredients: { include: { ingredient: true } } } } },
@@ -37,16 +37,33 @@ export default async function Home() {
       where: { workspaceId },
       select: { stockQty: true, minStockQty: true, avgCost: true },
     }),
-    prisma.ingredientEntry.findMany({
-      where: { workspaceId },
-      select: {
-        ingredientId: true,
-        entryDate: true,
-        totalCost: true,
-        qtyInBase: true,
-        ingredient: { select: { name: true, baseUnit: { select: { baseUnit: true } } } },
-      },
-    }),
+    // Alerta de preço só precisa das 2 compras mais recentes de cada insumo
+    // (compara a última com a anterior). Buscar só elas mantém a home leve
+    // mesmo quando o histórico de compras crescer muito ao longo dos anos.
+    prisma.$queryRaw<
+      {
+        ingredientId: string;
+        ingredientName: string;
+        baseUnit: string;
+        entryDate: Date;
+        totalCost: string;
+        qtyInBase: string;
+      }[]
+    >`
+      SELECT e.ingredient_id AS "ingredientId", i.name AS "ingredientName",
+             u.base_unit AS "baseUnit", e.entry_date AS "entryDate",
+             e.total_cost AS "totalCost", e.qty_in_base AS "qtyInBase"
+      FROM (
+        SELECT *, ROW_NUMBER() OVER (
+          PARTITION BY ingredient_id ORDER BY entry_date DESC, id DESC
+        ) AS rn
+        FROM ingredient_entries
+        WHERE workspace_id = ${workspaceId}
+      ) e
+      JOIN ingredients i ON i.id = e.ingredient_id
+      JOIN units u ON u.id = i.base_unit_id
+      WHERE e.rn <= 2
+    `,
   ]);
 
   const margens = recipes
@@ -86,11 +103,11 @@ export default async function Home() {
     0
   );
 
-  const entriesForAlert: EntryForAlert[] = entries.map((e) => ({
+  const entriesForAlert: EntryForAlert[] = recentEntries.map((e) => ({
     ingredientId: e.ingredientId,
-    ingredientName: e.ingredient.name,
-    baseUnit: e.ingredient.baseUnit.baseUnit,
-    entryDate: e.entryDate,
+    ingredientName: e.ingredientName,
+    baseUnit: e.baseUnit,
+    entryDate: new Date(e.entryDate),
     totalCost: Number(e.totalCost),
     qtyInBase: Number(e.qtyInBase),
   }));
