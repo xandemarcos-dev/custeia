@@ -75,7 +75,7 @@ export async function Header() {
             <Link
               href="/ajuda"
               aria-label="Ajuda"
-              className="flex size-9 items-center justify-center rounded-full text-white/75 transition-colors hover:bg-[#2dd4bf]/15 hover:text-[#5eead4]"
+              className="flex size-9 items-center justify-center rounded-full text-[#2dd4bf] transition-colors hover:bg-[#2dd4bf]/15 hover:text-[#5eead4]"
             >
               <HelpCircle className="size-[18px]" />
             </Link>

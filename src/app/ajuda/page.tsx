@@ -69,7 +69,7 @@ export default function AjudaPage() {
                 <li key={s.id}>
                   <a
                     href={`#${s.id}`}
-                    className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm font-medium text-[#2a3540] transition-colors hover:bg-[#e6faf6] hover:text-[#0f9b8e]"
+                    className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-[#0f9b8e] transition-colors hover:bg-[#e6faf6]"
                   >
                     <span className="w-4 text-right text-xs tabular-nums text-[#9aa4ae]">
                       {i + 1}
