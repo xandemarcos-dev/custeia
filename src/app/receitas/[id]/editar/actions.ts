@@ -24,7 +24,10 @@ export async function updateRecipeAction(
   const packagingCost = Number(formData.get("packagingCost"));
   const fixedCostPct = Number(formData.get("fixedCostPct"));
   const monthlySalesRaw = String(formData.get("monthlySalesQty") ?? "").trim();
-  const monthlySalesQty = monthlySalesRaw === "" ? null : Number(monthlySalesRaw);
+  // 0 e vazio são tratados como "não informado" (null): sem volume não há ganho
+  // a calcular, e a coluna Vol./mês volta a mostrar "definir".
+  const monthlySalesQty =
+    monthlySalesRaw === "" || Number(monthlySalesRaw) === 0 ? null : Number(monthlySalesRaw);
   const ingredientIds = formData.getAll("ingredientId").map(String);
   const qtys = formData.getAll("qtyInBase").map((v) => Number(v));
 
