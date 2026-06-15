@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { updateRecipeAction, type EditRecipeState } from "./actions";
-import { IngredientRows } from "@/components/IngredientRows";
+import { IngredientGroups } from "@/components/IngredientGroups";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +19,7 @@ type Recipe = {
   packagingCost: number;
   fixedCostPct: number;
   monthlySalesQty: number | null;
-  items: { ingredientId: string; qtyInBase: number }[];
+  groups: { name: string; items: { ingredientId: string; qtyInBase: number }[] }[];
 };
 
 const selectCls =
@@ -98,8 +98,11 @@ export function EditRecipeForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label>Ingredientes</Label>
-        <IngredientRows ingredients={ingredients} initialItems={recipe.items} />
+        <Label>Ficha técnica</Label>
+        <p className="text-xs text-muted-foreground">
+          Separe em grupos quando a receita tiver partes distintas (ex.: massa e cobertura).
+        </p>
+        <IngredientGroups ingredients={ingredients} initialGroups={recipe.groups} />
       </div>
 
       <Button type="submit" className="w-full" disabled={pending}>

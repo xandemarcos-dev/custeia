@@ -29,6 +29,15 @@ export default async function EditarReceitaPage({ params }: { params: Promise<{ 
   const items = recipe.groups.flatMap((g) =>
     g.ingredients.map((ri) => ({ ingredientId: ri.ingredientId, qtyInBase: Number(ri.qtyInBase) }))
   );
+  // Grupos da ficha técnica (ordenados) para alimentar o formulário de edição.
+  const groups = [...recipe.groups]
+    .sort((a, b) => a.orderIndex - b.orderIndex)
+    .map((g) => ({
+      name: g.name,
+      items: [...g.ingredients]
+        .sort((a, b) => a.orderIndex - b.orderIndex)
+        .map((ri) => ({ ingredientId: ri.ingredientId, qtyInBase: Number(ri.qtyInBase) })),
+    }));
   const avgCostById = new Map(ingredientsRaw.map((i) => [i.id, Number(i.avgCost)]));
   const custoLote = sumIngredientCost(
     items.map((it) => ({ qtyInBase: it.qtyInBase, avgCost: avgCostById.get(it.ingredientId) ?? 0 }))
@@ -95,7 +104,7 @@ export default async function EditarReceitaPage({ params }: { params: Promise<{ 
                 fixedCostPct: Number(recipe.fixedCostPct),
                 monthlySalesQty:
                   recipe.monthlySalesQty == null ? null : Number(recipe.monthlySalesQty),
-                items,
+                groups,
               }}
               categories={categories}
               ingredients={ingredients}

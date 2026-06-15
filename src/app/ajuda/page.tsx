@@ -169,7 +169,11 @@ export default function AjudaPage() {
               <ol className="list-decimal space-y-1.5 pl-5">
                 <li>Vá em Produtos → Novo produto.</li>
                 <li>Informe nome, rendimento (porções) e preço de venda.</li>
-                <li>Adicione os insumos da ficha técnica com a quantidade de cada um.</li>
+                <li>
+                  Adicione os insumos da ficha técnica com a quantidade de cada um. Se a receita
+                  tiver partes distintas — como <b>massa</b> e <b>cobertura/confeitos</b> — use
+                  “adicionar grupo” para separá-las; o custo soma todos os grupos.
+                </li>
                 <li>Venda/mês é opcional — informe para o sistema estimar o ganho na tela de Margem.</li>
               </ol>
               <Detalhe titulo="margem, custos fixos e preço sugerido">

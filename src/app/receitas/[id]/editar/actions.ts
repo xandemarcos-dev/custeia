@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
+import { parseRecipeGroupsFromForm } from "@/lib/recipeGroups";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -28,8 +29,7 @@ export async function updateRecipeAction(
   // a calcular, e a coluna Vol./mês volta a mostrar "definir".
   const monthlySalesQty =
     monthlySalesRaw === "" || Number(monthlySalesRaw) === 0 ? null : Number(monthlySalesRaw);
-  const ingredientIds = formData.getAll("ingredientId").map(String);
-  const qtys = formData.getAll("qtyInBase").map((v) => Number(v));
+  const groups = parseRecipeGroupsFromForm(formData);
 
   if (!id) return { error: "Produto inválido." };
   if (!name) return { error: "Informe o nome do produto." };
@@ -50,13 +50,11 @@ export async function updateRecipeAction(
   const ownedCat = await prisma.productCategory.findFirst({ where: { id: categoryId, workspaceId }, select: { id: true } });
   if (!ownedCat) return { error: "Categoria inválida." };
 
-  const items = ingredientIds
-    .map((ingId, i) => ({ ingredientId: ingId, qtyInBase: qtys[i] }))
-    .filter((it) => it.ingredientId && it.qtyInBase > 0);
-  if (items.length === 0) return { error: "Adicione ao menos um insumo." };
+  const allItems = groups.flatMap((g) => g.items);
+  if (allItems.length === 0) return { error: "Adicione ao menos um insumo." };
 
   // Garante que todos os insumos pertencem ao workspace (evita referência cruzada).
-  const uniqueIngredientIds = [...new Set(items.map((it) => it.ingredientId))];
+  const uniqueIngredientIds = [...new Set(allItems.map((it) => it.ingredientId))];
   const ownedIngredients = await prisma.ingredient.count({
     where: { workspaceId, id: { in: uniqueIngredientIds } },
   });
@@ -72,16 +70,18 @@ export async function updateRecipeAction(
     });
     await tx.recipeIngredient.deleteMany({ where: { group: { recipeId: id } } });
     await tx.recipeIngredientGroup.deleteMany({ where: { recipeId: id } });
-    await tx.recipeIngredientGroup.create({
-      data: {
-        recipeId: id,
-        name: "Massa",
-        orderIndex: 0,
-        ingredients: {
-          create: items.map((it, i) => ({ ingredientId: it.ingredientId, qtyInBase: it.qtyInBase, orderIndex: i })),
+    for (let gi = 0; gi < groups.length; gi++) {
+      await tx.recipeIngredientGroup.create({
+        data: {
+          recipeId: id,
+          name: groups[gi].name,
+          orderIndex: gi,
+          ingredients: {
+            create: groups[gi].items.map((it, i) => ({ ingredientId: it.ingredientId, qtyInBase: it.qtyInBase, orderIndex: i })),
+          },
         },
-      },
-    });
+      });
+    }
   });
 
   revalidatePath("/receitas");

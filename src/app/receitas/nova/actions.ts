@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
+import { parseRecipeGroupsFromForm } from "@/lib/recipeGroups";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -28,9 +29,8 @@ export async function createRecipeAction(
   const monthlySalesQty =
     monthlySalesRaw === "" || Number(monthlySalesRaw) === 0 ? null : Number(monthlySalesRaw);
 
-  // As listas (mesmo name) chegam alinhadas por índice.
-  const ingredientIds = formData.getAll("ingredientId").map(String);
-  const qtys = formData.getAll("qtyInBase").map((v) => Number(v));
+  // Grupos da ficha técnica (ex.: Massa, Cobertura), reconstruídos do FormData.
+  const groups = parseRecipeGroupsFromForm(formData);
 
   // Validação — devolve mensagem amigável em vez de quebrar a tela.
   if (!name) return { error: "Informe o nome do produto." };
@@ -46,10 +46,8 @@ export async function createRecipeAction(
     return { error: "A venda/mês não pode ser negativa." };
   }
 
-  const items = ingredientIds
-    .map((id, i) => ({ ingredientId: id, qtyInBase: qtys[i] }))
-    .filter((it) => it.ingredientId && it.qtyInBase > 0);
-  if (items.length === 0) {
+  const allItems = groups.flatMap((g) => g.items);
+  if (allItems.length === 0) {
     return { error: "Adicione ao menos um insumo com quantidade maior que zero." };
   }
 
@@ -58,7 +56,7 @@ export async function createRecipeAction(
   if (!category) return { error: "Categoria inválida." };
 
   // Garante que todos os insumos pertencem ao workspace (evita referência cruzada).
-  const uniqueIngredientIds = [...new Set(items.map((it) => it.ingredientId))];
+  const uniqueIngredientIds = [...new Set(allItems.map((it) => it.ingredientId))];
   const ownedIngredients = await prisma.ingredient.count({
     where: { workspaceId, id: { in: uniqueIngredientIds } },
   });
@@ -79,17 +77,17 @@ export async function createRecipeAction(
       fixedCostPct,
       monthlySalesQty,
       groups: {
-        create: {
-          name: "Massa",
-          orderIndex: 0,
+        create: groups.map((g, gi) => ({
+          name: g.name,
+          orderIndex: gi,
           ingredients: {
-            create: items.map((it, i) => ({
+            create: g.items.map((it, i) => ({
               ingredientId: it.ingredientId,
               qtyInBase: it.qtyInBase,
               orderIndex: i,
             })),
           },
-        },
+        })),
       },
     },
   });
