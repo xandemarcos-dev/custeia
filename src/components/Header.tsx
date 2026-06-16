@@ -70,7 +70,13 @@ export async function Header({ wide = false }: { wide?: boolean } = {}) {
               </span>
             </span>
           </Link>
-          <nav className="hidden items-center gap-1 text-sm md:flex"><NavLinks restock={restock} /></nav>
+          <nav
+            className={`hidden items-center gap-1 text-sm md:flex ${
+              wide ? "md:flex-1 md:justify-center" : ""
+            }`}
+          >
+            <NavLinks restock={restock} />
+          </nav>
           <div className="ml-auto flex items-center gap-1.5">
             <Link
               href="/ajuda"
