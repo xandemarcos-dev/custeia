@@ -20,12 +20,12 @@ async function getRestockCount(): Promise<number> {
   }
 }
 
-export async function Header({ wide = false }: { wide?: boolean } = {}) {
+export async function Header() {
   const restock = await getRestockCount();
 
   return (
     <header className="sticky top-0 z-10 border-b border-white/10 bg-[#182131] text-white">
-      <div className={`mx-auto ${wide ? "max-w-7xl" : "max-w-5xl"} px-4 sm:px-6`}>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex h-14 items-center gap-6 md:h-16">
           <Link
             href="/"
@@ -70,11 +70,7 @@ export async function Header({ wide = false }: { wide?: boolean } = {}) {
               </span>
             </span>
           </Link>
-          <nav
-            className={`hidden items-center gap-1 text-sm md:flex ${
-              wide ? "md:flex-1 md:justify-center" : ""
-            }`}
-          >
+          <nav className="hidden items-center gap-1 text-sm md:flex md:flex-1 md:justify-center">
             <NavLinks restock={restock} />
           </nav>
           <div className="ml-auto flex items-center gap-1.5">

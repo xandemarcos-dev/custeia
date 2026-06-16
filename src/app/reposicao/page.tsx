@@ -40,7 +40,7 @@ export default async function ReposicaoPage() {
   return (
     <>
       <Header />
-      <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
+      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
         <PageHeader
           title="Reposição"
           description="Insumos abaixo do estoque mínimo — hora de comprar."

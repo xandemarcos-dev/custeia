@@ -68,7 +68,7 @@ export default async function ReceitasPage() {
   return (
     <>
       <Header />
-      <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
+      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
         <PageHeader
           title="Produtos"
           description="Custo de produção calculado a partir do custo médio atual dos insumos."
