@@ -28,8 +28,8 @@ export default async function IngredientesPage() {
 
   return (
     <>
-      <Header />
-      <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
+      <Header wide />
+      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
         <PageHeader
           title="Insumos"
           description="Custo médio ponderado móvel de cada insumo."

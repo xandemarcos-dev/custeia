@@ -20,12 +20,12 @@ async function getRestockCount(): Promise<number> {
   }
 }
 
-export async function Header() {
+export async function Header({ wide = false }: { wide?: boolean } = {}) {
   const restock = await getRestockCount();
 
   return (
     <header className="sticky top-0 z-10 border-b border-white/10 bg-[#182131] text-white">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+      <div className={`mx-auto ${wide ? "max-w-7xl" : "max-w-5xl"} px-4 sm:px-6`}>
         <div className="flex h-14 items-center gap-6 md:h-16">
           <Link
             href="/"
