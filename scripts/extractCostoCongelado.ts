@@ -2,6 +2,7 @@ import * as path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
+import { randomBytes } from 'crypto';
 
 const execAsync = promisify(exec);
 
@@ -34,6 +35,11 @@ interface CustoCongelado {
 async function extractCostoCongelado() {
   const excelPath = path.resolve(__dirname, '..', '..', 'Estoque 2026.xlsx');
 
+  // Ponto 3: Validar existência do arquivo Excel
+  if (!fs.existsSync(excelPath)) {
+    throw new Error(`Arquivo Excel não encontrado: ${excelPath}`);
+  }
+
   // Criar script Python para extrair dados com valores calculados
   const pythonCode = `from openpyxl import load_workbook
 import json
@@ -57,11 +63,12 @@ for row_idx in range(2, sheet_produtos.max_row + 1):
         elif isinstance(custo_medio, str):
             try:
                 custo_val = float(custo_medio)
-            except:
+            except (ValueError, TypeError):
                 custo_val = 0
 
-        produtos[str(int(codigo))] = {
-            'codigo': int(codigo),
+        codigo_int = int(codigo)
+        produtos[str(codigo_int)] = {
+            'codigo': codigo_int,
             'nome': str(nome),
             'marca': str(marca or ''),
             'custoMedioAtual': custo_val
@@ -76,7 +83,7 @@ for row_idx in range(2, sheet_entradas.max_row + 1):
     quantidade = sheet_entradas.cell(row=row_idx, column=6).value
     preco_unitario = sheet_entradas.cell(row=row_idx, column=7).value
 
-    if not data or not codigo or not quantidade or not preco_unitario:
+    if data is None or codigo is None or quantidade is None or preco_unitario is None:
         continue
 
     codigo_str = str(int(codigo))
@@ -92,12 +99,17 @@ for row_idx in range(2, sheet_entradas.max_row + 1):
 result = {'produtos': produtos, 'entradas': entradas}
 print(json.dumps(result))`;
 
-  // Escrever e executar script Python
-  const tempPyPath = path.join(__dirname, '..', '..', 'temp_extract.py');
+  // Escrever e executar script Python com UUID para evitar race condition
+  const randomSuffix = randomBytes(4).toString('hex');
+  const tempPyPath = path.join(__dirname, '..', '..', `temp_extract_${randomSuffix}.py`);
   fs.writeFileSync(tempPyPath, pythonCode);
 
   try {
-    const { stdout } = await execAsync(`python "${tempPyPath}"`);
+    const { stdout, stderr } = await execAsync(`python "${tempPyPath}"`);
+
+    if (stderr) {
+      console.warn('Python stderr:', stderr);
+    }
 
     const data = JSON.parse(stdout);
 
@@ -127,9 +139,9 @@ print(json.dumps(result))`;
       const compraAntiga = entradasComData[0];
 
       const custoAntigoCompra = compraAntiga.precoUnitario;
-      const diasDesdeCompra = Math.floor(
+      const diasDesdeCompra = Math.max(0, Math.floor(
         (now.getTime() - compraAntiga.dataObj.getTime()) / (1000 * 60 * 60 * 24)
-      );
+      ));
 
       const defasagemReais = p.custoMedioAtual - custoAntigoCompra;
       const defasagemPorcentagem =
@@ -158,18 +170,18 @@ print(json.dumps(result))`;
 
     // Log dos top 3
     console.log('=== CUSTO CONGELADO ===\n');
-    console.log('Total de insumos analisados: ' + Object.keys(data.produtos).length);
-    console.log('Insumos com custo congelado (defasagem > 5% + dias >= 30): ' + resultados.length + '\n');
+    console.log(`Total de insumos analisados: ${Object.keys(data.produtos).length}`);
+    console.log(`Insumos com custo congelado (defasagem > 5% + dias >= 30): ${resultados.length}\n`);
 
     const top3 = resultados.slice(0, 3);
     top3.forEach((item, index) => {
-      console.log((index + 1) + '. ' + item.nome + ' (' + item.marca + ')');
-      console.log('   Código: ' + item.codigo);
+      console.log(`${index + 1}. ${item.nome} (${item.marca})`);
+      console.log(`   Código: ${item.codigo}`);
       const dateStr = item.dataCompraAntiga.toISOString().split('T')[0];
-      console.log('   Custo antigo (' + dateStr + '): R$ ' + item.custoAntigoCompra.toFixed(2));
-      console.log('   Custo médio atual: R$ ' + item.custoMedioAtual.toFixed(2));
-      console.log('   Defasagem: R$ ' + item.defasagemReais.toFixed(2) + ' (' + item.defasagemPorcentagem.toFixed(1) + '%)');
-      console.log('   Dias desde compra: ' + item.diasDesdeCompra);
+      console.log(`   Custo antigo (${dateStr}): R$ ${item.custoAntigoCompra.toFixed(2)}`);
+      console.log(`   Custo médio atual: R$ ${item.custoMedioAtual.toFixed(2)}`);
+      console.log(`   Defasagem: R$ ${item.defasagemReais.toFixed(2)} (${item.defasagemPorcentagem.toFixed(1)}%)`);
+      console.log(`   Dias desde compra: ${item.diasDesdeCompra}`);
       console.log();
     });
 
