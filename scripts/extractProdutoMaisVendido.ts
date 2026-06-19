@@ -32,6 +32,13 @@ async function extractProdutoMaisVendido() {
 import json
 from datetime import datetime
 
+# Constantes para índices de colunas (1-based indexing em openpyxl)
+COL_PEDIDO = 1
+COL_PRODUTO = 6
+COL_QTDE = 8
+COL_PRECO_UNIT = 9
+COL_TOTAL = 10
+
 wb = load_workbook(r"${excelPath}", data_only=True)
 
 # Ler Produtos
@@ -50,11 +57,11 @@ sheet_pedidos = wb["Pedidos - Doces"]
 vendas = {}
 for row_idx in range(2, sheet_pedidos.max_row + 1):
     # Colunas: A=Pedido, F=Produto, H=Qtde, I=Unit, J=Total
-    pedido = sheet_pedidos.cell(row=row_idx, column=1).value
-    codigo_produto = sheet_pedidos.cell(row=row_idx, column=6).value
-    qtde = sheet_pedidos.cell(row=row_idx, column=8).value
-    preco_unit = sheet_pedidos.cell(row=row_idx, column=9).value
-    total = sheet_pedidos.cell(row=row_idx, column=10).value
+    pedido = sheet_pedidos.cell(row=row_idx, column=COL_PEDIDO).value
+    codigo_produto = sheet_pedidos.cell(row=row_idx, column=COL_PRODUTO).value
+    qtde = sheet_pedidos.cell(row=row_idx, column=COL_QTDE).value
+    preco_unit = sheet_pedidos.cell(row=row_idx, column=COL_PRECO_UNIT).value
+    total = sheet_pedidos.cell(row=row_idx, column=COL_TOTAL).value
 
     # Ignorar linhas com dados incompletos
     if codigo_produto is None or qtde is None:
@@ -90,6 +97,15 @@ for codigo_str, venda_data in vendas.items():
 
 print(json.dumps({'produtos': produtos, 'vendas': resultado}))`;
 
+  // Validar se Python está disponível
+  try {
+    await execAsync('python --version');
+  } catch (error) {
+    throw new Error(
+      'Python não está disponível no PATH. Por favor, instale Python 3 e adicione ao PATH.'
+    );
+  }
+
   // Escrever e executar script Python com UUID para evitar race condition
   const randomSuffix = randomBytes(4).toString('hex');
   const tempPyPath = path.join(__dirname, '..', '..', `temp_venda_${randomSuffix}.py`);
@@ -98,11 +114,27 @@ print(json.dumps({'produtos': produtos, 'vendas': resultado}))`;
   try {
     const { stdout, stderr } = await execAsync(`python "${tempPyPath}"`);
 
+    // Verificar se stderr contém erro real (não apenas avisos)
     if (stderr) {
-      console.warn('Python stderr:', stderr);
+      const stderrLower = stderr.toLowerCase();
+      // Avisos do Python geralmente começam com "UserWarning" ou "DeprecationWarning"
+      const isRealError = !stderrLower.includes('warning');
+      if (isRealError) {
+        throw new Error(`Python execution error: ${stderr}`);
+      }
+      // Se for apenas aviso, apenas fazer log
+      console.warn('Python warning:', stderr);
     }
 
-    const data = JSON.parse(stdout);
+    // Parse JSON com try-catch para melhor erro
+    let data;
+    try {
+      data = JSON.parse(stdout);
+    } catch (parseError) {
+      throw new Error(
+        `Erro ao fazer parse do JSON retornado pelo Python. Output: ${stdout.substring(0, 200)}`
+      );
+    }
 
     // Processar dados e criar lista de produtos vendidos
     const resultados: ProdutoVenda[] = [];
