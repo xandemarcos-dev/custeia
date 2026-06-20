@@ -663,13 +663,12 @@ function gerarHTML(data: CasoUsoData): string {
       descricao: `em "${data.margem.produto}"`,
     });
   }
-  if (totalEvaporacao > 0) {
-    numeros.push({
-      label: 'Evaporação mensal',
-      valor: `R$ ${totalEvaporacao.toFixed(2)}`,
-      descricao: 'saída não rastreada',
-    });
-  }
+  // Sempre renderizar métrica 3, com fallback se sem dados
+  numeros.push({
+    label: 'Evaporação mensal',
+    valor: totalEvaporacao > 0 ? `R$ ${totalEvaporacao.toFixed(2)}` : 'N/A',
+    descricao: totalEvaporacao > 0 ? 'saída não rastreada' : 'dados insuficientes',
+  });
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -1056,14 +1055,18 @@ function gerarHTML(data: CasoUsoData): string {
             </div>
 
             <!-- SEÇÃO: LACUNAS -->
-            ${data.lacunas.length > 0 ? `
             <div class="lacunas-section">
-                <h3>Dados Faltantes (Lacunas)</h3>
+                <h3>Status dos Dados</h3>
+                ${data.lacunas.length > 0 ? `
                 <ul class="lacunas-list">
                     ${data.lacunas.map(lacuna => `<li>${lacuna}</li>`).join('')}
                 </ul>
+                ` : `
+                <ul class="lacunas-list">
+                    <li style="color: #4caf50; border-bottom: none;">✅ Todos os dados foram processados com sucesso.</li>
+                </ul>
+                `}
             </div>
-            ` : ''}
         </div>
 
         <div class="footer">
@@ -1095,6 +1098,7 @@ async function main() {
     console.log('  [2/5] Extraindo produto mais vendido...');
     const bestSeller = await extrairProdutoMaisVendido();
     if (!bestSeller) {
+      console.warn('Aviso: Nenhum best-seller foi encontrado na base de pedidos.');
       lacunas.push('Nenhum best-seller foi encontrado na base de pedidos.');
     } else {
       console.log(`       ✓ Best-seller: ${bestSeller.nome} (${bestSeller.unidadesVendidas.toFixed(0)} unidades/mês)`);
@@ -1104,17 +1108,13 @@ async function main() {
     console.log('  [3/5] Calculando margens antes/depois...');
     let margem: ResultadoMargem | null = null;
     if (bestSeller) {
-      // Procurar por FT baseado no código do best-seller
-      const ftNomes = ['Tradicional ao Leite', 'Tradicional', 'Doce', 'Chocolate'];
-      for (const nome of ftNomes) {
-        margem = await calcularMargemAntesDepois(nome, bestSeller.unidadesVendidas);
-        if (margem) {
-          console.log(`       ✓ Margem calculada para: ${margem.produto}`);
-          break;
-        }
-      }
-      if (!margem) {
-        lacunas.push('Ficha técnica do best-seller não encontrada (verifique se existe em FT.xlsx).');
+      // Procurar por FT baseado no nome do best-seller com fuzzy matching robusto
+      margem = await calcularMargemAntesDepois(bestSeller.nome, bestSeller.unidadesVendidas);
+      if (margem) {
+        console.log(`       ✓ Margem calculada para: ${margem.produto}`);
+      } else {
+        console.warn(`Aviso: Ficha técnica do best-seller "${bestSeller.nome}" não encontrada.`);
+        lacunas.push(`Ficha técnica do best-seller "${bestSeller.nome}" não encontrada (verifique se existe em FT.xlsx).`);
       }
     }
 
