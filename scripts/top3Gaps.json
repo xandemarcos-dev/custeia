@@ -1,0 +1,62 @@
+{
+  "top3Gaps": [
+    {
+      "produto": "Caramelo e Flor de Sal",
+      "precoVenda": 3.5,
+      "custoAntigo": 28.55775,
+      "custoAtual": 27.824092643071218,
+      "margemAntiga": {
+        "r$": 2.8200535714285717,
+        "pct": 80.57295918367348
+      },
+      "margemNova": {
+        "r$": 2.8375216037363997,
+        "pct": 81.07204582103999
+      },
+      "gap": {
+        "r$": -0.017468032307828008,
+        "mensal": -10.009182512385449
+      },
+      "unidadesVendidas": 573
+    },
+    {
+      "produto": "Ninho Com Nutella",
+      "precoVenda": 2.4,
+      "custoAntigo": 22.655500000000004,
+      "custoAtual": 22.769646567718,
+      "margemAntiga": {
+        "r$": 1.6448166666666664,
+        "pct": 68.53402777777777
+      },
+      "margemNova": {
+        "r$": 1.6410117810760667,
+        "pct": 68.37549087816946
+      },
+      "gap": {
+        "r$": 0.0038048855905996604,
+        "mensal": 1.8111255411254383
+      },
+      "unidadesVendidas": 476
+    },
+    {
+      "produto": "Tradicional ao Leite",
+      "precoVenda": 2,
+      "custoAntigo": 28.896,
+      "custoAtual": 28.912464749536177,
+      "margemAntiga": {
+        "r$": 1.097,
+        "pct": 54.85
+      },
+      "margemNova": {
+        "r$": 1.0964854765769945,
+        "pct": 54.824273828849726
+      },
+      "gap": {
+        "r$": 0.0005145234230055085,
+        "mensal": 0.3452452168366962
+      },
+      "unidadesVendidas": 671
+    }
+  ],
+  "dataSaida": "2026-06-20T03:55:55.568Z"
+}

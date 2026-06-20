@@ -63,10 +63,15 @@ interface Evaporacao {
   custoMensal: number;
 }
 
+interface GapResult extends ResultadoMargem {
+  unidadesVendidas: number;
+}
+
 interface CasoUsoData {
   custosCongelados: CustoCongelado[];
   bestSeller: BestSeller | null;
   margem: ResultadoMargem | null;
+  top3Gaps: GapResult[];
   evaporacao: Evaporacao[];
   dataGeracao: string;
   lacunas: string[];
@@ -953,52 +958,62 @@ function gerarHTML(data: CasoUsoData): string {
                 `}
             </div>
 
-            <!-- SEÇÃO 2: ANTES/DEPOIS -->
+            <!-- SEÇÃO 2: ANTES/DEPOIS — OS 3 PRODUTOS MAIS IMPACTADOS -->
             <div class="section">
-                <h2 class="section-title">2. Antes/Depois: Impacto na Margem</h2>
-                ${data.bestSeller && data.margem ? `
-                <p style="color: #666; margin-bottom: 20px;">Produto <strong>${data.bestSeller.nome}</strong> — best-seller com ${data.bestSeller.unidadesVendidas.toFixed(0)} unidades/mês.</p>
+                <h2 class="section-title">2️⃣ Antes/Depois — Os 3 Produtos Mais Impactados</h2>
+                ${data.top3Gaps && data.top3Gaps.length > 0 ? `
+                <p style="color: #666; margin-bottom: 20px;">Análise comparativa dos produtos com maior impacto financeiro na margem.</p>
 
-                <div class="card">
-                    <div class="card-title">Análise de Margem</div>
-                    <div class="card-row">
-                        <span class="card-label">Preço de venda (por porção):</span>
-                        <span class="card-value">R$ ${data.margem.precoVenda.toFixed(2)}</span>
+                ${data.top3Gaps.map((gap, idx) => `
+                <div style="margin-bottom: 30px;">
+                    <div class="card">
+                        <div class="card-title">${idx + 1}. ${gap.produto}</div>
+                        <div class="card-row">
+                            <span class="card-label">Preço de venda (por porção):</span>
+                            <span class="card-value">R$ ${gap.precoVenda.toFixed(2)}</span>
+                        </div>
+                        <div class="card-row">
+                            <span class="card-label">Volume mensal:</span>
+                            <span class="card-value">${gap.unidadesVendidas.toFixed(0)} porções</span>
+                        </div>
                     </div>
-                    <div class="card-row">
-                        <span class="card-label">Custo com preço antigo:</span>
-                        <span class="card-value">R$ ${(data.margem.custoAntigo / 671).toFixed(2)}/porção</span>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                        <div class="card">
+                            <div class="card-title" style="background: #e8f5e9;">Com Custo Antigo</div>
+                            <div class="card-row">
+                                <span class="card-label">Custo/porção:</span>
+                                <span class="card-value">R$ ${(gap.precoVenda - gap.margemAntiga.r$).toFixed(2)}</span>
+                            </div>
+                            <div class="card-row">
+                                <span class="card-label">Margem:</span>
+                                <span class="card-value">R$ ${gap.margemAntiga.r$.toFixed(2)} (${gap.margemAntiga.pct.toFixed(1)}%)</span>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title" style="background: #fff3e0;">Com Custo Atual</div>
+                            <div class="card-row">
+                                <span class="card-label">Custo/porção:</span>
+                                <span class="card-value">R$ ${(gap.precoVenda - gap.margemNova.r$).toFixed(2)}</span>
+                            </div>
+                            <div class="card-row">
+                                <span class="card-label">Margem:</span>
+                                <span class="card-value">R$ ${gap.margemNova.r$.toFixed(2)} (${gap.margemNova.pct.toFixed(1)}%)</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-row">
-                        <span class="card-label">Margem antiga:</span>
-                        <span class="card-value">R$ ${data.margem.margemAntiga.r$.toFixed(2)} (${data.margem.margemAntiga.pct.toFixed(1)}%)</span>
+
+                    <div class="gap-section">
+                        <strong>Gap Financeiro:</strong><br>
+                        <span style="font-size: 0.95em;">R$ ${Math.abs(gap.gap.r$).toFixed(2)}/porção × ${gap.unidadesVendidas.toFixed(0)} porções/mês</span><br>
+                        <span style="font-size: 1.3em; color: #cc7700; font-weight: bold;">= ${gap.gap.mensal > 0 ? '+' : '-'}R$ ${Math.abs(gap.gap.mensal).toFixed(2)}/mês</span>
                     </div>
                 </div>
-
-                <div class="card" style="margin-top: 15px;">
-                    <div class="card-title">Com Custo Atual</div>
-                    <div class="card-row">
-                        <span class="card-label">Custo com preço atual:</span>
-                        <span class="card-value">R$ ${(data.margem.custoAtual / 671).toFixed(2)}/porção</span>
-                    </div>
-                    <div class="card-row">
-                        <span class="card-label">Margem nova:</span>
-                        <span class="card-value">R$ ${data.margem.margemNova.r$.toFixed(2)} (${data.margem.margemNova.pct.toFixed(1)}%)</span>
-                    </div>
-                    <div class="card-row highlight">
-                        <span class="card-label"><strong>Gap:</strong></span>
-                        <span class="card-value"><strong>-R$ ${Math.abs(data.margem.gap.r$).toFixed(2)}/porção</strong></span>
-                    </div>
-                </div>
-
-                <div class="gap-section">
-                    <strong>Impacto Mensal:</strong><br>
-                    Com ${data.bestSeller.unidadesVendidas.toFixed(0)} porções vendidas/mês:<br>
-                    <span style="font-size: 1.3em; color: #cc7700; font-weight: bold;">-R$ ${Math.abs(data.margem.gap.mensal).toFixed(2)}</span> em margem perdida por mês
-                </div>
+                `).join('')}
                 ` : `
                 <div class="card">
-                    <p style="color: #666;">Dados insuficientes para calcular margem (best-seller ou ficha técnica não encontrados).</p>
+                    <p style="color: #666;">Dados insuficientes para calcular gap (execute top3GapsComparison.ts primeiro).</p>
                 </div>
                 `}
             </div>
@@ -1079,6 +1094,28 @@ function gerarHTML(data: CasoUsoData): string {
 }
 
 // ============================================================================
+// CARREGAR TOP 3 GAPS
+// ============================================================================
+
+async function carregarTop3Gaps(): Promise<GapResult[]> {
+  const gapsPath = path.join(__dirname, 'top3Gaps.json');
+
+  if (!fs.existsSync(gapsPath)) {
+    console.warn('⚠️  Arquivo top3Gaps.json não encontrado. Execute top3GapsComparison.ts primeiro.');
+    return [];
+  }
+
+  try {
+    const conteudo = fs.readFileSync(gapsPath, 'utf-8');
+    const dados = JSON.parse(conteudo);
+    return dados.top3Gaps || [];
+  } catch (error) {
+    console.warn('⚠️  Erro ao carregar top3Gaps.json:', error);
+    return [];
+  }
+}
+
+// ============================================================================
 // MAIN
 // ============================================================================
 
@@ -1123,18 +1160,29 @@ async function main() {
     const evaporacao = await extrairEvaporacao();
     console.log(`       ✓ ${evaporacao.length} produtos com evaporação detectados`);
 
+    // TAREFA 4+6: Carregar top 3 gaps
+    console.log('  [5/5] Carregando top 3 gaps...');
+    const top3Gaps = await carregarTop3Gaps();
+    if (top3Gaps.length > 0) {
+      console.log(`       ✓ ${top3Gaps.length} produtos com maior gap carregados`);
+    } else {
+      console.warn('Aviso: Arquivo top3Gaps.json não encontrado ou vazio.');
+      lacunas.push('Arquivo top3Gaps.json não encontrado. Execute top3GapsComparison.ts primeiro.');
+    }
+
     // Montar dados
     const data: CasoUsoData = {
       custosCongelados,
       bestSeller,
       margem,
+      top3Gaps,
       evaporacao,
       dataGeracao,
       lacunas,
     };
 
     // Gerar HTML
-    console.log('  [5/5] Gerando HTML...');
+    console.log('  [6/6] Gerando HTML...');
     const html = gerarHTML(data);
 
     // Salvar arquivo
