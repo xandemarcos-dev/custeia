@@ -51,8 +51,8 @@ interface ResultadoMargem {
  * Integra: Tarefa 1 (custos antigos/novos), Tarefa 2 (volume mensal), Tarefa 3 (ingredientes da receita)
  *
  * LÓGICA:
- * 1. FT tem lista de ingredientes com Quantidade (coluna D) e Preço Unitário (coluna H)
- * 2. Cálculo original: Custo = Quantidade × Preço Unitário (coluna I na FT já faz isso)
+ * 1. FT tem lista de ingredientes com Quantidade (coluna C) e Preço Unitário (coluna H)
+ * 2. Cálculo original: Custo = Quantidade × Preço Unitário
  * 3. Nosso cálculo:
  *    - Custo ANTIGO: Quantidade × Preço Unitário da PRIMEIRA compra do ingrediente
  *    - Custo ATUAL: Quantidade × Preço Unitário do CUSTO MÉDIO atual (Estoque)
@@ -66,8 +66,15 @@ async function calcularMargemAntesDepois(
   const ftPath = path.join(__dirname, "..", "..", "FT.xlsx");
 
   // ========== 1. LER ESTOQUE (Produtos + Entradas) ==========
-  const wb = new ExcelJS.Workbook();
-  await wb.xlsx.readFile(estoquePath);
+  let wb: ExcelJS.Workbook;
+  try {
+    wb = new ExcelJS.Workbook();
+    await wb.xlsx.readFile(estoquePath);
+  } catch (error) {
+    throw new Error(
+      `Não foi possível ler o arquivo de estoque: ${estoquePath}. Erro: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 
   // Mapear: código produto → { custoMedioAtual }
   const produtos = new Map<number, Produto>();
@@ -131,8 +138,15 @@ async function calcularMargemAntesDepois(
   });
 
   // ========== 2. LER FICHA TÉCNICA (FT.xlsx) ==========
-  const ftWb = new ExcelJS.Workbook();
-  await ftWb.xlsx.readFile(ftPath);
+  let ftWb: ExcelJS.Workbook;
+  try {
+    ftWb = new ExcelJS.Workbook();
+    await ftWb.xlsx.readFile(ftPath);
+  } catch (error) {
+    throw new Error(
+      `Não foi possível ler o arquivo de ficha técnica: ${ftPath}. Erro: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 
   // Procurar aba com o nome do produto
   let ftSheet = null;
