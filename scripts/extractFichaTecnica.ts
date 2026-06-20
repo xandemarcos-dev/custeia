@@ -8,7 +8,7 @@ interface Ingrediente {
 
 interface FichaTecnica {
   nome: string;
-  yieldQty: string;
+  yieldQty: number;
   unitPrice: number;
   packagingCost: number;
   ingredientes: Ingrediente[];
@@ -30,20 +30,22 @@ async function extractFichaTecnica(): Promise<void> {
 
   // Extrair dados
   const nome = sheet.getCell("A1").value as string; // "Receita: Tradicional ao Leite"
-  const yieldQty = sheet.getCell("L3").value; // "32" ou "32 porções"
+  const yieldQtyValue = sheet.getCell("L3").value;
+  const yieldQty = typeof yieldQtyValue === "string" ? parseInt(yieldQtyValue, 10) : (yieldQtyValue as number); // Converter para número
   const unitPrice = sheet.getCell("L19").value as number; // 2
 
-  // L8 contém fórmula =(L3/100)*16, calcular manualmente
+  // L8 contém fórmula =(L3/100)*EMBALAGEM_BASE, calcular manualmente
   const l3Value = sheet.getCell("L3").value as number;
-  const packagingCost = (l3Value / 100) * 16;
+  const EMBALAGEM_BASE = 16; // Custo padrão de embalagem em centavos
+  const packagingCost = (l3Value / 100) * EMBALAGEM_BASE;
 
-  // Extrair ingredientes do bloco 1 (Massa): linhas 8-11, coluna A (código) e C (quantidade)
+  // Extrair ingredientes do bloco 1 (Massa): linhas 8-11, coluna A (código) e D (quantidade)
   const ingredientes: Ingrediente[] = [];
 
   // Bloco 1: Massa (linhas 8-11)
   for (let row = 8; row <= 11; row++) {
     const codigoCell = sheet.getCell(`A${row}`).value;
-    const qtdCell = sheet.getCell(`C${row}`).value;
+    const qtdCell = sheet.getCell(`D${row}`).value;
 
     if (codigoCell !== null && codigoCell !== undefined) {
       ingredientes.push({
@@ -56,7 +58,7 @@ async function extractFichaTecnica(): Promise<void> {
   // Bloco 2: Cobertura/Confeitos (linhas 23+)
   for (let row = 23; row <= 32; row++) {
     const codigoCell = sheet.getCell(`A${row}`).value;
-    const qtdCell = sheet.getCell(`C${row}`).value;
+    const qtdCell = sheet.getCell(`D${row}`).value;
 
     if (codigoCell !== null && codigoCell !== undefined) {
       ingredientes.push({
