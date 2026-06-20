@@ -652,28 +652,50 @@ function gerarHTML(data: CasoUsoData): string {
   const top3Custos = data.custosCongelados.slice(0, 3);
   const totalEvaporacao = data.evaporacao.reduce((sum, e) => sum + e.custoMensal, 0);
 
-  // Calcular 3 números mais chocantes
+  // Calcular 3 números mais chocantes (baseado em TOP 3 GAPS)
   const numeros = [];
-  if (top3Custos.length > 0) {
+
+  // Usar top 3 gaps para os 3 números mais chocantes
+  if (data.top3Gaps && data.top3Gaps.length >= 1) {
+    numeros.push({
+      label: 'Maior margem impactada',
+      valor: `R$ ${Math.abs(data.top3Gaps[0].gap.mensal).toFixed(2)}/mês`,
+      descricao: `(R$ ${Math.abs(data.top3Gaps[0].gap.mensal * 12).toFixed(2)}/ano) em "${data.top3Gaps[0].produto}"`,
+    });
+  }
+
+  if (data.top3Gaps && data.top3Gaps.length >= 2) {
+    numeros.push({
+      label: '2º maior impacto',
+      valor: `R$ ${Math.abs(data.top3Gaps[1].gap.mensal).toFixed(2)}/mês`,
+      descricao: `(R$ ${Math.abs(data.top3Gaps[1].gap.mensal * 12).toFixed(2)}/ano) em "${data.top3Gaps[1].produto}"`,
+    });
+  }
+
+  if (data.top3Gaps && data.top3Gaps.length >= 3) {
+    numeros.push({
+      label: '3º maior impacto',
+      valor: `R$ ${Math.abs(data.top3Gaps[2].gap.mensal).toFixed(2)}/mês`,
+      descricao: `(R$ ${Math.abs(data.top3Gaps[2].gap.mensal * 12).toFixed(2)}/ano) em "${data.top3Gaps[2].produto}"`,
+    });
+  }
+
+  // Fallback se não houver 3 gaps: completar com custo congelado ou evaporação
+  if (numeros.length < 3 && top3Custos.length > 0) {
     numeros.push({
       label: 'Defasagem máxima',
       valor: `${top3Custos[0].defasagemPorcentagem.toFixed(1)}%`,
       descricao: `em "${top3Custos[0].nome}"`,
     });
   }
-  if (data.margem && data.margem.gap.mensal > 0) {
+
+  if (numeros.length < 3) {
     numeros.push({
-      label: 'Margem perdida/mês',
-      valor: `R$ ${Math.abs(data.margem.gap.mensal).toFixed(2)}`,
-      descricao: `em "${data.margem.produto}"`,
+      label: 'Evaporação detectada',
+      valor: totalEvaporacao > 0 ? `R$ ${totalEvaporacao.toFixed(2)}/mês` : 'N/A',
+      descricao: totalEvaporacao > 0 ? 'saída não rastreada' : 'sem dados',
     });
   }
-  // Sempre renderizar métrica 3, com fallback se sem dados
-  numeros.push({
-    label: 'Evaporação mensal',
-    valor: totalEvaporacao > 0 ? `R$ ${totalEvaporacao.toFixed(2)}` : 'N/A',
-    descricao: totalEvaporacao > 0 ? 'saída não rastreada' : 'dados insuficientes',
-  });
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
