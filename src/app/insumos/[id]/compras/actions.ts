@@ -13,20 +13,19 @@ export async function deleteEntryAction(formData: FormData): Promise<void> {
   if (!isAuthenticated) throw new Error("Você precisa estar logado.");
 
   const entryId = String(formData.get("entryId") ?? "");
-  const ingredientId = String(formData.get("ingredientId") ?? "");
-  if (!entryId || !ingredientId) throw new Error("Dados inválidos.");
+  if (!entryId) throw new Error("Dados inválidos.");
 
   const workspaceId = await requireWorkspaceId();
-  const entry = await prisma.ingredientEntry.findFirst({ where: { id: entryId, workspaceId }, select: { id: true } });
+  const entry = await prisma.ingredientEntry.findFirst({ where: { id: entryId, workspaceId }, select: { id: true, ingredientId: true } });
   if (!entry) throw new Error("Compra não encontrada.");
 
   await prisma.ingredientEntry.delete({ where: { id: entryId } });
-  await recomputeIngredient(ingredientId); // reprocessa o histórico restante
+  await recomputeIngredient(workspaceId, entry.ingredientId); // reprocessa o histórico restante
 
-  revalidatePath(`/insumos/${ingredientId}/compras`);
+  revalidatePath(`/insumos/${entry.ingredientId}/compras`);
   revalidatePath("/ingredientes");
   revalidatePath("/margem");
-  redirect(`/insumos/${ingredientId}/compras`);
+  redirect(`/insumos/${entry.ingredientId}/compras`);
 }
 
 export type EditEntryState = { error?: string };
@@ -39,7 +38,6 @@ export async function updateEntryAction(
   if (!isAuthenticated) return { error: "Você precisa estar logado." };
 
   const entryId = String(formData.get("entryId") ?? "");
-  const ingredientId = String(formData.get("ingredientId") ?? "");
   const purchaseUnitId = String(formData.get("purchaseUnitId") ?? "");
   const purchaseQty = Number(formData.get("purchaseQty"));
   // Total pago pelos itens (sem frete); o preço unitário é derivado.
@@ -47,7 +45,7 @@ export async function updateEntryAction(
   const freightTotal = Number(formData.get("freightTotal") ?? 0);
   const entryDateStr = String(formData.get("entryDate") ?? "");
 
-  if (!entryId || !ingredientId || !purchaseUnitId) return { error: "Dados inválidos." };
+  if (!entryId || !purchaseUnitId) return { error: "Dados inválidos." };
   if (!(purchaseQty > 0)) return { error: "A quantidade deve ser maior que zero." };
   if (!(productTotal >= 0)) return { error: "O preço total não pode ser negativo." };
   if (!(freightTotal >= 0)) return { error: "O frete não pode ser negativo." };
@@ -56,7 +54,7 @@ export async function updateEntryAction(
   const unitPrice = productTotal / purchaseQty;
 
   const workspaceId = await requireWorkspaceId();
-  const entry = await prisma.ingredientEntry.findFirst({ where: { id: entryId, workspaceId }, select: { id: true } });
+  const entry = await prisma.ingredientEntry.findFirst({ where: { id: entryId, workspaceId }, select: { id: true, ingredientId: true } });
   if (!entry) return { error: "Compra não encontrada." };
 
   const unit = await prisma.unit.findFirst({ where: { id: purchaseUnitId, workspaceId } });
@@ -81,10 +79,10 @@ export async function updateEntryAction(
     },
   });
 
-  await recomputeIngredient(ingredientId); // recalcula a cadeia inteira
+  await recomputeIngredient(workspaceId, entry.ingredientId); // recalcula a cadeia inteira
 
-  revalidatePath(`/insumos/${ingredientId}/compras`);
+  revalidatePath(`/insumos/${entry.ingredientId}/compras`);
   revalidatePath("/ingredientes");
   revalidatePath("/margem");
-  redirect(`/insumos/${ingredientId}/compras`);
+  redirect(`/insumos/${entry.ingredientId}/compras`);
 }

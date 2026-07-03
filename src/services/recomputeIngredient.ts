@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { recomputeAvgFromEntries } from "./recomputeAvgCost";
 
-/** Reprocessa estoque/custo de um insumo a partir de TODAS as suas entradas. */
-export async function recomputeIngredient(ingredientId: string): Promise<void> {
+/** Reprocessa estoque/custo de um insumo a partir de TODAS as suas entradas e saídas. */
+export async function recomputeIngredient(workspaceId: string, ingredientId: string): Promise<void> {
   const entries = await prisma.ingredientEntry.findMany({
-    where: { ingredientId },
+    where: { ingredientId, workspaceId },
     orderBy: [{ entryDate: "asc" }, { id: "asc" }],
   });
 
@@ -14,6 +14,15 @@ export async function recomputeIngredient(ingredientId: string): Promise<void> {
   }));
 
   const { stockQty, avgCost, snapshots } = recomputeAvgFromEntries(events);
+
+  // Desconta saídas (produção, ajustes) do estoque calculado pelas entradas.
+  const exits = await prisma.ingredientExit.findMany({
+    where: { ingredientId, workspaceId },
+    select: { qtyInBase: true },
+  });
+
+  const totalExits = exits.reduce((sum, ex) => sum + Number(ex.qtyInBase), 0);
+  const finalStock = stockQty - totalExits;
 
   await prisma.$transaction([
     ...entries.map((e, i) =>
@@ -27,7 +36,7 @@ export async function recomputeIngredient(ingredientId: string): Promise<void> {
     ),
     prisma.ingredient.update({
       where: { id: ingredientId },
-      data: { stockQty, avgCost },
+      data: { stockQty: finalStock, avgCost },
     }),
   ]);
 }
