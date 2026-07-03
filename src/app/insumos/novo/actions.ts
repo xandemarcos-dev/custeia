@@ -50,5 +50,5 @@ export async function createIngredientAction(
   }
 
   revalidatePath("/ingredientes");
-  redirect("/ingredientes");
+  redirect("/ingredientes?ok=insumo");
 }

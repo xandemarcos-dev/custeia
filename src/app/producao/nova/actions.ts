@@ -40,5 +40,5 @@ export async function createProductionAction(
   revalidatePath("/ingredientes");
   revalidatePath("/reposicao");
   revalidatePath("/producao");
-  redirect("/ingredientes");
+  redirect("/ingredientes?ok=producao");
 }

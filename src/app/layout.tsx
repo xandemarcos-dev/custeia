@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "@/components/ui/sonner";
+import { Suspense } from "react";
+import { SuccessToast } from "@/components/SuccessToast";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -62,6 +65,10 @@ export default function RootLayout({
           }}
         >
           {children}
+          <Toaster />
+          <Suspense>
+            <SuccessToast />
+          </Suspense>
         </ClerkProvider>
       </body>
     </html>

@@ -6,7 +6,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export type CategoryActionState = { error?: string };
+export type CategoryActionState = { error?: string; success?: boolean };
 
 export async function createCategoryAction(
   _prev: CategoryActionState,
@@ -35,7 +35,7 @@ export async function createCategoryAction(
   });
 
   revalidatePath("/categorias");
-  return {};
+  return { success: true };
 }
 
 export async function deleteCategoryAction(formData: FormData): Promise<void> {
