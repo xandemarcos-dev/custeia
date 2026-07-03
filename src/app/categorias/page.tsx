@@ -40,6 +40,15 @@ export default async function CategoriasPage({
           </div>
         )}
 
+        {erro === "nao-encontrada" && (
+          <div
+            role="alert"
+            className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          >
+            Categoria não encontrada ou já foi excluída.
+          </div>
+        )}
+
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Adicionar categoria</CardTitle>

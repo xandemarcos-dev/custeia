@@ -94,6 +94,8 @@ model Category {
   workspace   Workspace    @relation(fields: [workspaceId], references: [id])
   ingredients Ingredient[]
 
+  // Impede categorias duplicadas (mesmo nome) dentro do mesmo workspace.
+  @@unique([workspaceId, name])
   @@map("categories")
 }
 
