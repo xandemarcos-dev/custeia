@@ -203,7 +203,10 @@ export function NewEntryForm({
           name="entryDate"
           type="date"
           required
-          defaultValue={new Date().toISOString().split("T")[0]}
+          defaultValue={(() => {
+                  const d = new Date();
+                  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+                })()}
         />
       </div>
 

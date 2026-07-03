@@ -241,7 +241,7 @@ export default async function MargemPage() {
               Nenhum produto cadastrado ainda. Crie seu primeiro produto para ver a margem.
             </p>
             <Link href="/receitas/nova" className={buttonVariants()}>
-              Criar primeiro produto
+              Cadastrar primeiro produto
             </Link>
           </div>
         )}

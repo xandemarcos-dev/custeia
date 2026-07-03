@@ -32,7 +32,8 @@ export async function createEntryAction(
   if (!(purchaseQty > 0)) return { error: "A quantidade deve ser maior que zero." };
   if (!(productTotal >= 0)) return { error: "O preço total não pode ser negativo." };
   if (!entryDateStr) return { error: "Informe a data da compra." };
-  const entryDate = new Date(entryDateStr);
+  const [y, m, d] = entryDateStr.split("-").map(Number);
+  const entryDate = new Date(y, m - 1, d, 12, 0, 0);
   if (isNaN(entryDate.getTime())) return { error: "Data da compra inválida." };
 
   const unitPrice = productTotal / purchaseQty;
