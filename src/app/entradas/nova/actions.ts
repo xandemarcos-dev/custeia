@@ -65,6 +65,7 @@ export async function createEntryAction(
       freightTotal,
     });
   } catch (e) {
+    if (e instanceof Error && (e as { digest?: string }).digest?.startsWith("NEXT_REDIRECT")) throw e;
     return { error: e instanceof Error ? e.message : "Falha ao registrar compra." };
   }
 
