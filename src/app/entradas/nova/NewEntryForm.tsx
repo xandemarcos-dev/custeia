@@ -196,6 +196,17 @@ export function NewEntryForm({
         </datalist>
       </div>
 
+      <div className="space-y-1.5">
+        <Label htmlFor="entryDate">Data da compra</Label>
+        <Input
+          id="entryDate"
+          name="entryDate"
+          type="date"
+          required
+          defaultValue={new Date().toISOString().split("T")[0]}
+        />
+      </div>
+
       <Button type="submit" className="w-full" disabled={pending}>
         {pending ? "Registrando…" : "Registrar compra"}
       </Button>

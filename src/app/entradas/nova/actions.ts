@@ -23,6 +23,7 @@ export async function createEntryAction(
   const productTotal = Number(formData.get("productTotal"));
   const freightTotal = Number(formData.get("freightTotal") ?? 0);
   const supplierName = String(formData.get("supplierName") ?? "").trim();
+  const entryDateStr = String(formData.get("entryDate") ?? "").trim();
 
   // Validação mínima (a ponte também valida, mas erramos cedo aqui).
   if (!ingredientId || !purchaseUnitId) {
@@ -30,6 +31,9 @@ export async function createEntryAction(
   }
   if (!(purchaseQty > 0)) return { error: "A quantidade deve ser maior que zero." };
   if (!(productTotal >= 0)) return { error: "O preço total não pode ser negativo." };
+  if (!entryDateStr) return { error: "Informe a data da compra." };
+  const entryDate = new Date(entryDateStr);
+  if (isNaN(entryDate.getTime())) return { error: "Data da compra inválida." };
 
   const unitPrice = productTotal / purchaseQty;
 
@@ -58,7 +62,7 @@ export async function createEntryAction(
       workspaceId,
       ingredientId,
       supplierId,
-      entryDate: new Date(),
+      entryDate,
       purchaseUnitId,
       purchaseQty,
       unitPrice,
@@ -71,5 +75,5 @@ export async function createEntryAction(
 
   // Marca a lista como "precisa atualizar" e leva o usuário até ela.
   revalidatePath("/ingredientes");
-  redirect("/ingredientes");
+  redirect("/ingredientes?ok=compra");
 }
