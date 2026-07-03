@@ -7,9 +7,14 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export async function createEntryAction(formData: FormData) {
+export type NewEntryState = { error?: string };
+
+export async function createEntryAction(
+  _prev: NewEntryState,
+  formData: FormData
+): Promise<NewEntryState> {
   const { isAuthenticated } = await auth();
-  if (!isAuthenticated) throw new Error("Você precisa estar logado.");
+  if (!isAuthenticated) return { error: "Você precisa estar logado." };
 
   // Lê os campos enviados pelo formulário.
   const ingredientId = String(formData.get("ingredientId") ?? "");
@@ -21,43 +26,47 @@ export async function createEntryAction(formData: FormData) {
 
   // Validação mínima (a ponte também valida, mas erramos cedo aqui).
   if (!ingredientId || !purchaseUnitId) {
-    throw new Error("Selecione o insumo e a unidade de compra.");
+    return { error: "Selecione o insumo e a unidade de compra." };
   }
-  if (!(purchaseQty > 0)) throw new Error("A quantidade deve ser maior que zero.");
-  if (!(productTotal >= 0)) throw new Error("O preço total não pode ser negativo.");
+  if (!(purchaseQty > 0)) return { error: "A quantidade deve ser maior que zero." };
+  if (!(productTotal >= 0)) return { error: "O preço total não pode ser negativo." };
 
   const unitPrice = productTotal / purchaseQty;
 
-  const workspaceId = await requireWorkspaceId();
-  const ingredient = await prisma.ingredient.findFirst({ where: { id: ingredientId, workspaceId }, select: { workspaceId: true } });
-  if (!ingredient) throw new Error("Insumo inválido.");
+  try {
+    const workspaceId = await requireWorkspaceId();
+    const ingredient = await prisma.ingredient.findFirst({ where: { id: ingredientId, workspaceId }, select: { workspaceId: true } });
+    if (!ingredient) return { error: "Insumo inválido." };
 
-  // Resolve fornecedor: reutiliza se já existe, cria se for nome novo.
-  let supplierId: string | null = null;
-  if (supplierName) {
-    const existing = await prisma.supplier.findFirst({
-      where: { workspaceId, name: { equals: supplierName, mode: "insensitive" } },
-    });
-    if (existing) {
-      supplierId = existing.id;
-    } else {
-      const created = await prisma.supplier.create({
-        data: { workspaceId, name: supplierName },
+    // Resolve fornecedor: reutiliza se já existe, cria se for nome novo.
+    let supplierId: string | null = null;
+    if (supplierName) {
+      const existing = await prisma.supplier.findFirst({
+        where: { workspaceId, name: { equals: supplierName, mode: "insensitive" } },
       });
-      supplierId = created.id;
+      if (existing) {
+        supplierId = existing.id;
+      } else {
+        const created = await prisma.supplier.create({
+          data: { workspaceId, name: supplierName },
+        });
+        supplierId = created.id;
+      }
     }
-  }
 
-  await registerIngredientEntry({
-    workspaceId,
-    ingredientId,
-    supplierId,
-    entryDate: new Date(),
-    purchaseUnitId,
-    purchaseQty,
-    unitPrice,
-    freightTotal,
-  });
+    await registerIngredientEntry({
+      workspaceId,
+      ingredientId,
+      supplierId,
+      entryDate: new Date(),
+      purchaseUnitId,
+      purchaseQty,
+      unitPrice,
+      freightTotal,
+    });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Falha ao registrar compra." };
+  }
 
   // Marca a lista como "precisa atualizar" e leva o usuário até ela.
   revalidatePath("/ingredientes");

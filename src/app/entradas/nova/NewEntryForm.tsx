@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { createEntryAction } from "./actions";
+import { useActionState, useMemo, useState } from "react";
+import { createEntryAction, type NewEntryState } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,6 +38,7 @@ export function NewEntryForm({
   units: UnitOpt[];
   suppliers: SupplierOpt[];
 }) {
+  const [state, action, pending] = useActionState<NewEntryState, FormData>(createEntryAction, {});
   const [ingredientId, setIngredientId] = useState("");
   const [purchaseUnitId, setPurchaseUnitId] = useState("");
   const [qty, setQty] = useState("");
@@ -70,7 +71,13 @@ export function NewEntryForm({
   }, [qty, productTotal, freight, selectedUnit]);
 
   return (
-    <form action={createEntryAction} className="space-y-4">
+    <form action={action} className="space-y-4">
+      {state.error && (
+        <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {state.error}
+        </p>
+      )}
+
       <div className="space-y-1.5">
         <Label htmlFor="ingredientId">Insumo</Label>
         <select
@@ -189,7 +196,9 @@ export function NewEntryForm({
         </datalist>
       </div>
 
-      <Button type="submit" className="w-full">Registrar compra</Button>
+      <Button type="submit" className="w-full" disabled={pending}>
+        {pending ? "Registrando…" : "Registrar compra"}
+      </Button>
     </form>
   );
 }

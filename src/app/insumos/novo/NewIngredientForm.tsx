@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { createIngredientAction } from "./actions";
+import { useActionState, useState } from "react";
+import { createIngredientAction, type NewIngredientState } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,11 +18,18 @@ export function NewIngredientForm({
   categories: Option[];
   units: Option[];
 }) {
+  const [state, action, pending] = useActionState<NewIngredientState, FormData>(createIngredientAction, {});
   const [baseUnitId, setBaseUnitId] = useState("");
   const unitLabel = units.find((u) => u.id === baseUnitId)?.name ?? "";
 
   return (
-    <form action={createIngredientAction} className="space-y-4">
+    <form action={action} className="space-y-4">
+      {state.error && (
+        <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {state.error}
+        </p>
+      )}
+
       <div className="space-y-1.5">
         <Label htmlFor="name">Nome</Label>
         <Input id="name" name="name" required placeholder="Ex: Manteiga" />
@@ -74,7 +81,9 @@ export function NewIngredientForm({
         </p>
       </div>
 
-      <Button type="submit" className="w-full">Cadastrar insumo</Button>
+      <Button type="submit" className="w-full" disabled={pending}>
+        {pending ? "Cadastrando…" : "Cadastrar insumo"}
+      </Button>
     </form>
   );
 }

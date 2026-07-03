@@ -7,6 +7,7 @@ type NavItem = { href: string; label: string };
 
 const navItems: NavItem[] = [
   { href: "/ingredientes", label: "Insumos" },
+  { href: "/categorias", label: "Categorias" },
   { href: "/receitas", label: "Produtos" },
   { href: "/producao/nova", label: "Produção" },
   { href: "/margem", label: "Margem" },

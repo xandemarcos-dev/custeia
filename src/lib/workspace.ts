@@ -57,5 +57,27 @@ export async function requireWorkspaceId(): Promise<string> {
     });
   }
 
+  // Semeia categorias padrão se o workspace ainda não tem nenhuma.
+  await seedDefaultCategories(workspace.id);
+
   return created.workspaceId;
+}
+
+const DEFAULT_CATEGORIES: { name: string; color: string }[] = [
+  { name: "Laticínios", color: "#fce4ec" },
+  { name: "Chocolates e cacau", color: "#4e342e" },
+  { name: "Farinhas e amidos", color: "#fff9c4" },
+  { name: "Açúcares", color: "#f3e5f5" },
+  { name: "Embalagens", color: "#e3f2fd" },
+  { name: "Outros", color: "#eceff1" },
+];
+
+async function seedDefaultCategories(workspaceId: string): Promise<void> {
+  const existing = await prisma.category.count({ where: { workspaceId } });
+  if (existing > 0) return;
+
+  await prisma.category.createMany({
+    data: DEFAULT_CATEGORIES.map((c) => ({ workspaceId, name: c.name, color: c.color })),
+    skipDuplicates: true,
+  });
 }
