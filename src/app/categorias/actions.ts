@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
+import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -11,6 +12,9 @@ export async function createCategoryAction(
   _prev: CategoryActionState,
   formData: FormData
 ): Promise<CategoryActionState> {
+  const { isAuthenticated } = await auth();
+  if (!isAuthenticated) return { error: "Você precisa estar logado." };
+
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: "O nome da categoria é obrigatório." };
 
@@ -35,6 +39,9 @@ export async function createCategoryAction(
 }
 
 export async function deleteCategoryAction(formData: FormData): Promise<void> {
+  const { isAuthenticated } = await auth();
+  if (!isAuthenticated) throw new Error("Você precisa estar logado.");
+
   const id = String(formData.get("id") ?? "");
   if (!id) throw new Error("Categoria inválida.");
 
