@@ -155,9 +155,12 @@ export default async function IngredientesPage() {
         </div>
 
         {ingredients.length === 0 && (
-          <p className="py-8 text-center text-muted-foreground">
-            Nenhum insumo ainda. Clique em &ldquo;Novo insumo&rdquo;.
-          </p>
+          <div className="flex flex-col items-center gap-3 py-12 text-center">
+            <p className="text-sm text-muted-foreground">Nenhum insumo cadastrado ainda.</p>
+            <Link href="/insumos/novo" className={buttonVariants()}>
+              Cadastrar primeiro insumo
+            </Link>
+          </div>
         )}
       </main>
     </>

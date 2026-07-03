@@ -6,6 +6,7 @@ import { sumIngredientCost } from "@/services/recipeCost";
 import { computeMargin } from "@/services/margin";
 import { Header } from "@/components/Header";
 import { PageHeader } from "@/components/PageHeader";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -235,9 +236,14 @@ export default async function MargemPage() {
         </div>
 
         {rows.length === 0 && (
-          <p className="py-8 text-center text-muted-foreground">
-            Nenhum produto ainda. Cadastre um produto para ver a margem.
-          </p>
+          <div className="flex flex-col items-center gap-3 py-12 text-center">
+            <p className="text-sm text-muted-foreground">
+              Nenhum produto cadastrado ainda. Crie seu primeiro produto para ver a margem.
+            </p>
+            <Link href="/receitas/nova" className={buttonVariants()}>
+              Criar primeiro produto
+            </Link>
+          </div>
         )}
       </main>
     </>

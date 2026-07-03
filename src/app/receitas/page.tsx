@@ -181,9 +181,12 @@ export default async function ReceitasPage() {
         </div>
 
         {rows.length === 0 && (
-          <p className="py-8 text-center text-muted-foreground">
-            Nenhum produto ainda. Clique em &ldquo;Novo produto&rdquo;.
-          </p>
+          <div className="flex flex-col items-center gap-3 py-12 text-center">
+            <p className="text-sm text-muted-foreground">Nenhum produto cadastrado ainda.</p>
+            <Link href="/receitas/nova" className={buttonVariants()}>
+              Cadastrar primeiro produto
+            </Link>
+          </div>
         )}
       </main>
     </>

@@ -158,6 +158,50 @@ export default async function Home() {
           </p>
         </div>
 
+        {ingredients.length === 0 && (
+          <div className="mb-8 rounded-xl border border-border bg-card p-6">
+            <h2 className="mb-4 font-semibold text-foreground">Por onde começar</h2>
+            <ol className="space-y-3 text-sm">
+              <li className="flex items-center gap-3">
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-teal-500/20 text-xs font-bold text-teal-400">
+                  1
+                </span>
+                <Link href="/insumos/novo" className="font-medium text-teal-400 hover:underline">
+                  Cadastre um insumo
+                </Link>
+                <span className="text-muted-foreground">— chocolate, farinha, embalagem…</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-teal-500/20 text-xs font-bold text-teal-400">
+                  2
+                </span>
+                <Link href="/entradas/nova" className="font-medium text-teal-400 hover:underline">
+                  Registre a primeira compra
+                </Link>
+                <span className="text-muted-foreground">— o custo médio é calculado automaticamente</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-teal-500/20 text-xs font-bold text-teal-400">
+                  3
+                </span>
+                <Link href="/receitas/nova" className="font-medium text-teal-400 hover:underline">
+                  Monte seu produto
+                </Link>
+                <span className="text-muted-foreground">— defina rendimento, embalagem e preço de venda</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-teal-500/20 text-xs font-bold text-teal-400">
+                  4
+                </span>
+                <Link href="/margem" className="font-medium text-teal-400 hover:underline">
+                  Veja sua margem e preço sugerido
+                </Link>
+                <span className="text-muted-foreground">— saiba se você está ganhando ou perdendo</span>
+              </li>
+            </ol>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
           {kpis.map(({ label, value, href, alert, Icon }) => (
             <Link key={label} href={href}>
