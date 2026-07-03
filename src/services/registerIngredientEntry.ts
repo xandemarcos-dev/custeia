@@ -15,6 +15,11 @@ export interface RegisterEntryInput {
   notes?: string | null;
 }
 
+// INVARIANTE DE ESTOQUE: ingredient.stockQty = Σ IngredientEntry.qtyInBase − Σ IngredientExit.qtyInBase
+// Esta função confia que o valor atual em DB já está exits-ajustado (registerProduction faz decrement
+// atômico e cria IngredientExit simultaneamente; recomputeIngredient reconstrói do zero com a mesma fórmula).
+// Qualquer outro caminho que altere stockQty DEVE criar um IngredientExit correspondente ou chamar recomputeIngredient.
+
 /**
  * Registra uma compra de insumo e, atomicamente, recalcula e grava
  * o estoque e o custo médio do ingrediente.
