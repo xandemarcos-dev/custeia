@@ -12,9 +12,10 @@ export interface RecipeIngredientCost {
 export function sumIngredientCost(items: RecipeIngredientCost[]): number {
   let total = 0;
   for (const item of items) {
-    if (item.qtyInBase < 0 || item.avgCost < 0) {
-      throw new Error("Quantidade e custo não podem ser negativos.");
-    }
+    if (!Number.isFinite(item.qtyInBase) || item.qtyInBase < 0)
+      throw new Error("Quantidade do insumo inválida.");
+    if (!Number.isFinite(item.avgCost) || item.avgCost < 0)
+      throw new Error("Custo médio do insumo inválido.");
     total += item.qtyInBase * item.avgCost;
   }
   return total;

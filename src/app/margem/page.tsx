@@ -2,8 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
 import { formatBRL } from "@/lib/format";
-import { sumIngredientCost } from "@/services/recipeCost";
-import { computeMargin } from "@/services/margin";
+import { buildMarginRows } from "@/services/marginRows";
 import { Header } from "@/components/Header";
 import { PageHeader } from "@/components/PageHeader";
 import { buttonVariants } from "@/components/ui/button";
@@ -30,42 +29,7 @@ export default async function MargemPage() {
     },
   });
 
-  const rows = recipes
-    .map((r) => {
-      const items = r.groups.flatMap((g) =>
-        g.ingredients.map((ri) => ({
-          qtyInBase: Number(ri.qtyInBase),
-          avgCost: Number(ri.ingredient.avgCost),
-        }))
-      );
-      const m = computeMargin({
-        ingredientCostBatch: sumIngredientCost(items),
-        yieldQty: Number(r.yieldQty),
-        unitPrice: Number(r.unitPrice),
-        packagingCost: Number(r.packagingCost),
-        fixedCostPct: Number(r.fixedCostPct),
-        targetMarginPct: Number(r.targetMarginPct),
-      });
-      const monthlyQty =
-        r.monthlySalesQty == null ? null : Number(r.monthlySalesQty);
-      const monthlyGain =
-        m.belowTarget && monthlyQty != null
-          ? (m.suggestedPrice - Number(r.unitPrice)) * monthlyQty
-          : null;
-      return {
-        id: r.id,
-        name: r.name,
-        unitPrice: Number(r.unitPrice),
-        target: Number(r.targetMarginPct),
-        monthlyQty,
-        monthlyGain,
-        ...m,
-      };
-    })
-    .sort((a, b) => a.marginGap - b.marginGap);
-
-  const ganhoTotalMes = rows.reduce((acc, r) => acc + (r.monthlyGain ?? 0), 0);
-  const produtosComGanho = rows.filter((r) => (r.monthlyGain ?? 0) > 0).length;
+  const { rows, ganhoTotalMes, produtosComGanho } = buildMarginRows(recipes);
 
   return (
     <>

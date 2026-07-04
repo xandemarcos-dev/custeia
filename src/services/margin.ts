@@ -29,8 +29,16 @@ export interface ComputeMarginResult {
 export function computeMargin(input: ComputeMarginInput): ComputeMarginResult {
   const { ingredientCostBatch, yieldQty, unitPrice, packagingCost, fixedCostPct, targetMarginPct } = input;
 
-  if (yieldQty <= 0) throw new Error("O rendimento (yieldQty) deve ser maior que zero.");
-  if (unitPrice <= 0) throw new Error("O preço de venda deve ser maior que zero.");
+  if (!Number.isFinite(ingredientCostBatch) || ingredientCostBatch < 0)
+    throw new Error("Custo de insumos inválido.");
+  if (!Number.isFinite(packagingCost) || packagingCost < 0)
+    throw new Error("Custo de embalagem inválido.");
+  if (!Number.isFinite(fixedCostPct) || fixedCostPct < 0)
+    throw new Error("Percentual de fixos inválido.");
+  if (!Number.isFinite(yieldQty) || yieldQty <= 0)
+    throw new Error("O rendimento (yieldQty) deve ser maior que zero.");
+  if (!Number.isFinite(unitPrice) || unitPrice <= 0)
+    throw new Error("O preço de venda deve ser maior que zero.");
 
   // Como na planilha da Day: fixos incidem sobre insumos + embalagem.
   const batchCost = (ingredientCostBatch + packagingCost) * (1 + fixedCostPct / 100);
