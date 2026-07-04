@@ -14,11 +14,13 @@ export default async function EditarCompraPage({
 }) {
   const { id, entryId } = await params;
   const workspaceId = await requireWorkspaceId();
-  const [entry, units] = await Promise.all([
+  const [entry, ingredient, allUnits] = await Promise.all([
     prisma.ingredientEntry.findFirst({ where: { id: entryId, workspaceId } }),
+    prisma.ingredient.findFirst({ where: { id, workspaceId }, select: { dimension: true } }),
     prisma.unit.findMany({ where: { workspaceId }, orderBy: { name: "asc" } }),
   ]);
-  if (!entry || entry.ingredientId !== id) notFound();
+  if (!entry || entry.ingredientId !== id || !ingredient) notFound();
+  const units = allUnits.filter((u) => u.dimension === ingredient.dimension);
 
   const unitOpts = units.map((u) => ({
     id: u.id,

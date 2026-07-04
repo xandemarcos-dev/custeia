@@ -75,7 +75,7 @@ export async function updateEntryAction(
       freightTotal,
       qtyInBase: amounts.qtyInBase,
       totalCost: amounts.totalCost,
-      entryDate: (() => { const [y, m, d] = entryDateStr.split("-").map(Number); return new Date(y, m - 1, d, 12, 0, 0); })(),
+      entryDate: new Date(`${entryDateStr}T12:00:00Z`),
     },
   });
 

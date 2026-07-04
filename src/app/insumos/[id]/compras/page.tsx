@@ -27,7 +27,7 @@ export default async function ComprasPage({ params }: { params: Promise<{ id: st
       baseUnit: true,
       entries: {
         orderBy: [{ entryDate: "desc" }, { id: "desc" }],
-        include: { purchaseUnit: true },
+        include: { purchaseUnit: true, supplier: true },
       },
     },
   });
@@ -56,6 +56,7 @@ export default async function ComprasPage({ params }: { params: Promise<{ id: st
               <TableHeader>
                 <TableRow>
                   <TableHead>Data</TableHead>
+                  <TableHead>Fornecedor</TableHead>
                   <TableHead>Unidade</TableHead>
                   <TableHead className="text-right">Qtd</TableHead>
                   <TableHead className="text-right">Preço un.</TableHead>
@@ -68,7 +69,8 @@ export default async function ComprasPage({ params }: { params: Promise<{ id: st
               <TableBody>
                 {ingredient.entries.map((e) => (
                   <TableRow key={e.id}>
-                    <TableCell>{e.entryDate.toLocaleDateString("pt-BR")}</TableCell>
+                    <TableCell>{e.entryDate.toLocaleDateString("pt-BR", { timeZone: "UTC" })}</TableCell>
+                    <TableCell className="text-muted-foreground">{e.supplier?.name ?? "—"}</TableCell>
                     <TableCell>{e.purchaseUnit.name}</TableCell>
                     <TableCell className="text-right tabular-nums">{Number(e.purchaseQty)}</TableCell>
                     <TableCell className="text-right tabular-nums">{formatBRL(Number(e.unitPrice), 2)}</TableCell>
