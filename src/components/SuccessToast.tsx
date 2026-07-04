@@ -8,6 +8,7 @@ const MESSAGES: Record<string, string> = {
   insumo: "Insumo cadastrado com sucesso.",
   producao: "Produção registrada com sucesso.",
   categoria: "Categoria adicionada com sucesso.",
+  saida: "Saída registrada com sucesso.",
 };
 
 export function SuccessToast() {

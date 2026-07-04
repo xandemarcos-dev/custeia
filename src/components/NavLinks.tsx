@@ -10,6 +10,7 @@ const navItems: NavItem[] = [
   { href: "/categorias", label: "Categorias" },
   { href: "/receitas", label: "Produtos" },
   { href: "/producao/nova", label: "Produção" },
+  { href: "/saidas/nova", label: "Saídas" },
   { href: "/margem", label: "Margem" },
   { href: "/simulador", label: "Simular" },
   { href: "/unidades", label: "Unidades" },
