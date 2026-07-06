@@ -19,6 +19,7 @@ type Recipe = {
   packagingCost: number;
   fixedCostPct: number;
   monthlySalesQty: number | null;
+  gramsPerPortion: number | null;
   groups: { name: string; items: { ingredientId: string; qtyInBase: number }[] }[];
 };
 
@@ -63,6 +64,19 @@ export function EditRecipeForm({
         <div className="space-y-1.5">
           <Label htmlFor="yieldQty">Rende (porções)</Label>
           <Input id="yieldQty" name="yieldQty" type="number" step="any" min="0" required defaultValue={recipe.yieldQty} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="gramsPerPortion">Peso por porção (g)</Label>
+          <Input
+            id="gramsPerPortion"
+            name="gramsPerPortion"
+            type="number"
+            step="any"
+            min="0"
+            placeholder="Ex: 15"
+            defaultValue={recipe.gramsPerPortion ?? ""}
+          />
+          <p className="text-xs text-muted-foreground">Opcional. Permite calcular custo por grama.</p>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="unitPrice">Preço de venda (R$)</Label>

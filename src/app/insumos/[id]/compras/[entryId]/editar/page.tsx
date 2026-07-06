@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireWorkspaceId } from "@/lib/workspace";
+import { dimensionOf } from "@/lib/dimension";
 import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EditEntryForm } from "./EditEntryForm";
@@ -16,11 +17,12 @@ export default async function EditarCompraPage({
   const workspaceId = await requireWorkspaceId();
   const [entry, ingredient, allUnits] = await Promise.all([
     prisma.ingredientEntry.findFirst({ where: { id: entryId, workspaceId } }),
-    prisma.ingredient.findFirst({ where: { id, workspaceId }, select: { dimension: true } }),
+    prisma.ingredient.findFirst({ where: { id, workspaceId }, include: { baseUnit: true } }),
     prisma.unit.findMany({ where: { workspaceId }, orderBy: { name: "asc" } }),
   ]);
   if (!entry || entry.ingredientId !== id || !ingredient) notFound();
-  const units = allUnits.filter((u) => u.dimension === ingredient.dimension);
+  const ingDimension = dimensionOf(ingredient.baseUnit.baseUnit);
+  const units = allUnits.filter((u) => dimensionOf(u.baseUnit) === ingDimension);
 
   const unitOpts = units.map((u) => ({
     id: u.id,

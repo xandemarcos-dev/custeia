@@ -64,6 +64,7 @@ export default async function MargemPage() {
                   <TableHead className="text-right">Preço/un.</TableHead>
                   <TableHead className="text-right">Preço/cento</TableHead>
                   <TableHead className="text-right">Custo/un.</TableHead>
+                  <TableHead className="text-right">Custo/g</TableHead>
                   <TableHead className="text-right">Margem</TableHead>
                   <TableHead className="text-right">Meta</TableHead>
                   <TableHead className="text-right">Vol./mês</TableHead>
@@ -83,6 +84,13 @@ export default async function MargemPage() {
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {formatBRL(r.unitCost, 2)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {r.gramsPerPortion != null ? (
+                        formatBRL(r.unitCost / r.gramsPerPortion, 4)
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <span

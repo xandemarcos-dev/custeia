@@ -18,9 +18,11 @@ export async function createProductionAction(
   const recipeId = String(formData.get("recipeId") ?? "");
   const batchCount = Number(formData.get("batchCount"));
   const notes = String(formData.get("notes") ?? "") || null;
+  const productionDateStr = String(formData.get("productionDate") ?? "");
 
   if (!recipeId) return { error: "Selecione a receita produzida." };
   if (!(batchCount > 0)) return { error: "Informe quantos lotes foram produzidos." };
+  if (!productionDateStr) return { error: "Informe a data da produção." };
 
   const workspaceId = await requireWorkspaceId();
 
@@ -29,7 +31,7 @@ export async function createProductionAction(
       workspaceId,
       recipeId,
       batchCount,
-      productionDate: new Date(),
+      productionDate: new Date(`${productionDateStr}T12:00:00Z`),
       notes,
     });
   } catch (e) {

@@ -234,6 +234,7 @@ model Recipe {
   name            String  @db.VarChar(150)
   categoryId      String  @map("category_id")
   yieldQty        Decimal @map("yield_qty") @db.Decimal(10, 2)
+  gramsPerPortion Decimal? @map("grams_per_portion") @db.Decimal(8, 2)
   unitPrice       Decimal @map("unit_price") @db.Decimal(10, 2)
   targetMarginPct Decimal @default(0) @map("target_margin_pct") @db.Decimal(5, 2)
   packagingCost   Decimal  @default(0) @map("packaging_cost") @db.Decimal(10, 4)

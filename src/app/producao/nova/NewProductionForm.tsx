@@ -92,6 +92,23 @@ export function NewProductionForm({ recipes }: { recipes: RecipeOpt[] }) {
             value={batchStr}
             onChange={(e) => setBatchStr(e.target.value)}
           />
+          <p className="text-xs text-muted-foreground">Use vírgula para frações — ex: 0,5 para meio lote.</p>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="productionDate">Data da produção</Label>
+          <Input
+            id="productionDate"
+            name="productionDate"
+            type="date"
+            required
+            defaultValue={(() => {
+              const now = new Date();
+              const y = now.getFullYear();
+              const m = String(now.getMonth() + 1).padStart(2, "0");
+              const d = String(now.getDate()).padStart(2, "0");
+              return `${y}-${m}-${d}`;
+            })()}
+          />
         </div>
         {recipe && batchCount > 0 && (
           <div className="space-y-1.5">

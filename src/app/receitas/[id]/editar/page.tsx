@@ -104,6 +104,7 @@ export default async function EditarReceitaPage({ params }: { params: Promise<{ 
                 fixedCostPct: Number(recipe.fixedCostPct),
                 monthlySalesQty:
                   recipe.monthlySalesQty == null ? null : Number(recipe.monthlySalesQty),
+                gramsPerPortion: recipe.gramsPerPortion ? Number(recipe.gramsPerPortion) : null,
                 groups,
               }}
               categories={categories}

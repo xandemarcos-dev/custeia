@@ -10,6 +10,7 @@ type RecipeWithGroups = {
   targetMarginPct: unknown;
   yieldQty: unknown;
   monthlySalesQty: unknown;
+  gramsPerPortion: unknown;
   groups: Array<{
     ingredients: Array<{
       qtyInBase: unknown;
@@ -25,6 +26,7 @@ export type MarginRow = {
   target: number;
   monthlyQty: number | null;
   monthlyGain: number | null;
+  gramsPerPortion: number | null;
   unitCost: number;
   marginPct: number;
   marginGap: number;
@@ -76,6 +78,7 @@ export function buildMarginRows(recipes: RecipeWithGroups[]): MarginSummary {
         target: Number(r.targetMarginPct),
         monthlyQty,
         monthlyGain,
+        gramsPerPortion: r.gramsPerPortion != null ? Number(r.gramsPerPortion) : null,
         ...m,
       };
     })

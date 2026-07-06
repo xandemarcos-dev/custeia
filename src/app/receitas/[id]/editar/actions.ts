@@ -29,6 +29,8 @@ export async function updateRecipeAction(
   // a calcular, e a coluna Vol./mês volta a mostrar "definir".
   const monthlySalesQty =
     monthlySalesRaw === "" || Number(monthlySalesRaw) === 0 ? null : Number(monthlySalesRaw);
+  const gramsPerPortionRaw = String(formData.get("gramsPerPortion") ?? "").trim();
+  const gramsPerPortion = gramsPerPortionRaw === "" ? null : Number(gramsPerPortionRaw);
   const groups = parseRecipeGroupsFromForm(formData);
 
   if (!id) return { error: "Produto inválido." };
@@ -45,6 +47,9 @@ export async function updateRecipeAction(
   if (!(fixedCostPct >= 0)) return { error: "Os custos fixos não podem ser negativos." };
   if (monthlySalesQty !== null && !(monthlySalesQty >= 0)) {
     return { error: "A venda/mês não pode ser negativa." };
+  }
+  if (gramsPerPortion !== null && (!Number.isFinite(gramsPerPortion) || gramsPerPortion <= 0)) {
+    return { error: "Gramas por porção deve ser maior que zero." };
   }
 
   const ownedCat = await prisma.productCategory.findFirst({ where: { id: categoryId, workspaceId }, select: { id: true } });
@@ -66,7 +71,7 @@ export async function updateRecipeAction(
   await prisma.$transaction(async (tx) => {
     await tx.recipe.update({
       where: { id },
-      data: { name, categoryId, yieldQty, unitPrice, targetMarginPct, packagingCost, fixedCostPct, monthlySalesQty },
+      data: { name, categoryId, yieldQty, unitPrice, targetMarginPct, packagingCost, fixedCostPct, monthlySalesQty, gramsPerPortion },
     });
     await tx.recipeIngredient.deleteMany({ where: { group: { recipeId: id } } });
     await tx.recipeIngredientGroup.deleteMany({ where: { recipeId: id } });
